@@ -66,7 +66,7 @@ def find_stats(station_code):
     return stat_pack
 
 
-def find_all_souls(stations_pack, code_arr):
+def find_all_souls(stations_pack, code_arr, user_id):
     stat_pack = stations_pack
     souls_all = []
     # souls_dep = []
@@ -83,7 +83,14 @@ def find_all_souls(stations_pack, code_arr):
         for i in soul_dep_pack:
             soul = int(i[0])
             souls_all.append(soul)
-    print('souls all formed', sorted(souls_all))
+
+    # исключение самого пользователя из списка соулов
+    for i in souls_all:
+        if i == user_id:
+            print('del id', i)
+            del souls_all[souls_all.index(i)]
+        else:
+            pass
 
     # поиск подходящих по станции прибытия
     with sq.connect('db/users.db') as con:
@@ -94,14 +101,12 @@ def find_all_souls(stations_pack, code_arr):
     for i in soul_arr_pack:
         soul = int(i[0])
         souls_arr.append(soul)
-    print('souls_arr formed', sorted(souls_arr))
 
     # исключение не совпадающих по станции прибытия пользователей из словаря souls_all
     for soul in souls_all:
         if soul in souls_arr:
             pass
         if not soul in souls_arr:
-            print('del index', souls_all.index(soul), 'del soul', soul)
             del souls_all[souls_all.index(soul)]
     return souls_all
 
@@ -157,11 +162,12 @@ def get_soul_info(souls_package, number_one_to_five):
 
 m_dep = '2_20'
 m_arr = '5_6'
+user_id = 148
 
 stats = find_stats(m_dep)
 print('stats', stats)
 
-all_souls = find_all_souls(stats, m_arr)
+all_souls = find_all_souls(stats, m_arr, user_id)
 print('all souls', all_souls)
 
 cur_souls = find_current_souls(all_souls)
