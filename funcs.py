@@ -75,6 +75,8 @@ def remove_user(user_id):
         cur.execute("DELETE FROM users WHERE user_id=?", (user_id,))
 
 
+# ------- souls search funcs block -------
+# 2 funcs for station identification
 def get_way(package):
     for i in package:
         w = i[0]
@@ -87,6 +89,7 @@ def get_num(package):
         return n
 
 
+# technical funcs
 def get_random_for_souls(souls_all_package):
     souls_len = len(souls_all_package)
 
@@ -114,7 +117,18 @@ def find_stats(station_code):
         cur.execute('''SELECT code FROM stations_coo WHERE way=? AND 
                                                     (number BETWEEN ?-2 AND ?+2)''', (way, number, number))
         stat_pack = cur.fetchall()
+
     return stat_pack
+
+
+def check_souls_exist(stat_pack):
+    exists = None
+    stat_count = len(stat_pack)
+    if stat_count == 0:
+        exists = False
+    if stat_count > 0:
+        exists = True
+    return exists
 
 
 def find_all_souls(stations_pack, code_arr, user_id):
@@ -202,3 +216,5 @@ def get_soul_info(current_souls_package):
                ' указывает, что отправляется со станции "' + str(dep_st).title() + '" (' + str(dep_way) + ' линия)' + \
                ' и ездит на станцию "' + str(arr_st).title() + '"' + ' (' + str(arr_way) + ' линия)'
         return info
+
+# ------- the end of souls search funcs block -------

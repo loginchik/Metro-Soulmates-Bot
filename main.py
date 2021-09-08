@@ -214,10 +214,14 @@ def souls_search_func(message):
             m_arri = st[1]
 
     stats = funcs.find_stats(m_depa)
-    all_souls = funcs.find_all_souls(stats, m_arri, user_id)
-    cur_souls = funcs.find_current_souls(all_souls)
-    soul = funcs.get_soul_info(cur_souls)
-    bot.send_message(message.chat.id, soul)
+    souls_exist_bool = funcs.check_souls_exist(stats)
+    if souls_exist_bool:
+        all_souls = funcs.find_all_souls(stats, m_arri, user_id)
+        cur_souls = funcs.find_current_souls(all_souls)
+        soul = funcs.get_soul_info(cur_souls)
+        bot.send_message(message.chat.id, soul)
+    elif not souls_exist_bool:
+        bot.send_message(message.chat.id, consts.no_souls_found_text)
 
 
 @bot.message_handler(commands=not_working_commands)
