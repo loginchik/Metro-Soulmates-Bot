@@ -1,4 +1,4 @@
-from sqlite3 import types
+from telebot import types
 
 # information buttons
 help_button = types.KeyboardButton('/help')
