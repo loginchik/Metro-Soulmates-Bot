@@ -7,7 +7,8 @@ from consts import token, registration_status, not_working_commands as error_com
 from markups import help_markup
 
 # texts import
-from consts import about_text
+from consts import about_text, acc_del_conf_text, acc_create_conf_text, help_text, \
+    acc_exists_text, no_func_text, mdep_ask_text, marr_ask_text, way_ask_text, no_station_error
 
 bot = telebot.TeleBot(token)
 
@@ -24,7 +25,7 @@ new_user_inf = {
 }
 not_working_commands = error_commands
 
-# Creating a table
+# Creating a users table if not exists
 with sq.connect('db/users.db') as con:
     cur = con.cursor()
     cur.execute('''CREATE TABLE IF NOT EXISTS users (
@@ -40,7 +41,7 @@ with sq.connect('db/users.db') as con:
 @bot.message_handler(commands=['start', 'help'])
 def help_func(message):
     chat_id = message.chat.id
-    bot.send_message(chat_id, "В настоящее время бот умеет всего несколько вещей", reply_markup=help_markup)
+    bot.send_message(chat_id, text=help_text, reply_markup=help_markup)
 
 
 @bot.message_handler(commands=['about'])
@@ -59,8 +60,7 @@ def checking_registration(message):
     funcs.check_reg(user_id)
 
     if reg_status:
-        bot.send_message(chat_id, "Вы уже создавали профиль")
-        print("повторная попытка регистрации")
+        bot.send_message(chat_id, text=acc_exists_text)
         funcs.prof_info(user_id, chat_id)
     if not reg_status:
         get_basic(message)
@@ -78,7 +78,7 @@ def get_basic(message):
     new_user_inf['nickname'] = nick
 
     # follow next step
-    send = bot.send_message(message.chat.id, 'Метро отправления?')
+    send = bot.send_message(message.chat.id, text=mdep_ask_text)
     bot.register_next_step_handler(send, get_dep)
 
 
@@ -96,8 +96,7 @@ def get_dep(message):
             stats_num_cur = stats_num[0]
 
         if stats_num_cur == 0:
-            bot.send_message(message.chat.id,
-                             'такой станции метро нет в базе. попробуйте начать регистрацию заново')
+            bot.send_message(message.chat.id, text=no_station_error)
         if stats_num_cur == 1:
             cur.execute('''SELECT code FROM stations_coo WHERE name=?''', (mdep,))
             code_pack = cur.fetchall()
@@ -106,10 +105,10 @@ def get_dep(message):
             new_user_inf['metro_dep'] = code_dep
 
             # follow next step
-            send = bot.send_message(message.chat.id, "Метро прибытия?")
+            send = bot.send_message(message.chat.id, text=marr_ask_text)
             bot.register_next_step_handler(send, get_arr)
         if stats_num_cur > 1:
-            way_num = bot.send_message(message.chat.id, "пожалуйста введите номер линии")
+            way_num = bot.send_message(message.chat.id, text=way_ask_text)
             bot.register_next_step_handler(way_num, few_ways_st_dep)
 
 
@@ -128,7 +127,7 @@ def few_ways_st_dep(message):
         new_user_inf['metro_dep'] = code_dep
 
         # follow next step
-        send = bot.send_message(message.chat.id, "Метро прибытия?")
+        send = bot.send_message(message.chat.id, text=marr_ask_text)
         bot.register_next_step_handler(send, get_arr)
 
 
@@ -147,8 +146,7 @@ def get_arr(message):
             stats_num_cur = stats_num[0]
 
         if stats_num_cur == 0:
-            bot.send_message(message.chat.id,
-                             'такой станции метро нет в базе. попробуйте начать регистрацию заново')
+            bot.send_message(message.chat.id, text=no_station_error)
         if stats_num_cur == 1:
             cur.execute("SELECT code FROM stations_coo WHERE name=?", (marr,))
             code_pack = cur.fetchall()
@@ -162,7 +160,7 @@ def get_arr(message):
                                  metro_arr=new_user_inf['metro_arr']
                                  )
         if stats_num_cur > 1:
-            way_num = bot.send_message(message.chat.id, "пожалуйста введите номер линии")
+            way_num = bot.send_message(message.chat.id, text=way_ask_text)
             bot.register_next_step_handler(way_num, few_ways_st_arr)
 
 
@@ -186,8 +184,7 @@ def few_ways_st_arr(message):
                              metro_dep=new_user_inf['metro_dep'],
                              metro_arr=new_user_inf['metro_arr']
                              )
-        bot.send_message(message.chat.id, "Ваш профиль успешно зарегистрироан.\n\n"
-                                          "Чтобы посмотреть информацию о профиле, воспользуйтесь функцией /view_acc")
+        bot.send_message(message.chat.id, text=acc_create_conf_text)
 
 
 # Delete account
@@ -196,7 +193,7 @@ def delete_account(message):
     chat_id = message.chat.id
     user_id = message.from_user.id
     funcs.remove_user(user_id)
-    bot.send_message(chat_id, "Ваш аккаунт успешно удален")
+    bot.send_message(chat_id, acc_del_conf_text)
 
 
 # View account
@@ -207,7 +204,7 @@ def view_acc_func(message):
 
 @bot.message_handler(commands=not_working_commands)
 def sorry_no(message):
-    bot.send_message(message.chat.id, "К сожалению, эта функция еще только разрабатывается :(")
+    bot.send_message(message.chat.id, text=no_func_text)
 
 
 bot.polling()
