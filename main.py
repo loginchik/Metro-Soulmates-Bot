@@ -4,9 +4,8 @@ import sqlite3 as sq
 import funcs
 
 # globals import
-from consts import token
-from consts import registration_status
-from consts import not_working_commands as error_commands
+from consts import token, registration_status, not_working_commands as error_commands
+from markups import help_markup
 
 # texts import
 from consts import about_text
@@ -25,33 +24,6 @@ new_user_inf = {
     'metro_arr': ''
 }
 not_working_commands = error_commands
-
-# information buttons
-help_button = types.KeyboardButton('/help')
-about_button = types.KeyboardButton('/about')
-
-# user account buttons
-register_button = types.KeyboardButton('/register')
-delete_ac_button = types.KeyboardButton('/delete_acc')
-view_ac_button = types.KeyboardButton('/view_acc')
-edit_ac_button = types.KeyboardButton('/edit_account')
-
-# edit account buttons
-change_name_button = types.KeyboardButton('/change_name')
-change_dep_button = types.KeyboardButton('/change_dep_metro')
-change_arr_button = types.KeyboardButton('/change_arr_metro')
-
-# services buttons
-review_button = types.KeyboardButton('/review')
-search_button = types.KeyboardButton('/souls_search')
-
-help_markup = types.ReplyKeyboardMarkup(one_time_keyboard=True)
-help_markup.row(search_button)
-help_markup.row(register_button, delete_ac_button, view_ac_button, edit_ac_button)
-help_markup.row(about_button, review_button, help_button)
-
-edit_ac_markup = types.ReplyKeyboardMarkup(one_time_keyboard=True)
-edit_ac_markup.add(change_name_button, change_dep_button, change_arr_button)
 
 # Creating a table
 with sq.connect('db/users.db') as con:
