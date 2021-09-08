@@ -6,7 +6,7 @@ not_working_commands = ['review', 'edit_account']
 # texts
 about_text = 'Этот бот предназначен для поиска соулмейта на метро. Работает только для вышкинцев (по крайней мере ' \
              'пока). '
-help_text = ''
+help_text = '/register \n/about \n/delete_acc \n/view_acc \n/souls_search '
 acc_create_conf_text = 'Ваш аккаунт успешно зарегистрирован. Чтобы посмотреть информацию вашего профиля, ' \
                        'воспользуйтесь функцией {0}'.format('/view_acc')
 acc_del_conf_text = 'Ваш аккаунт успешно удален. Если захотите еще раз воспользоваться ботом, ' \
