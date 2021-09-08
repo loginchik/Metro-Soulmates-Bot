@@ -36,22 +36,6 @@ def get_num(package):
         return n
 
 
-# поиск станций, которые войдут в обработку
-def find_stats(station_code):
-    with sq.connect('db/metro.db') as con:
-        cur = con.cursor()
-
-        cur.execute('''SELECT way, number FROM stations_coo WHERE code=?''', (m_dep,))
-        pack = cur.fetchall()
-        way = get_way(pack)
-        number = get_num(pack)
-
-        cur.execute('''SELECT code FROM stations_coo WHERE way=? AND 
-                                                    (number BETWEEN ?-2 AND ?+2)''', (way, number, number))
-        stat_pack = cur.fetchall()
-    return stat_pack
-
-
 def get_random_for_souls(souls_all_package):
     souls_len = len(souls_all_package)
 
@@ -64,23 +48,62 @@ def get_random_for_souls(souls_all_package):
     return m
 
 
-def find_all_souls(stations_pack):
+# поиск станций отправления, которые войдут в обработку
+def find_stats(station_code):
+    with sq.connect('db/metro.db') as con:
+        cur = con.cursor()
+
+        # получает код станции и определяет ее путь и номер
+        cur.execute('''SELECT way, number FROM stations_coo WHERE code=?''', (station_code,))
+        pack = cur.fetchall()
+        way = get_way(pack)
+        number = get_num(pack)
+
+        # определяет и запаковывает в список перечень подходящих станций
+        cur.execute('''SELECT code FROM stations_coo WHERE way=? AND 
+                                                    (number BETWEEN ?-2 AND ?+2)''', (way, number, number))
+        stat_pack = cur.fetchall()
+    return stat_pack
+
+
+def find_all_souls(stations_pack, code_arr):
     stat_pack = stations_pack
     souls_all = []
+    # souls_dep = []
+    souls_arr = []
 
+    # поиск подходящих по станции отправления
     for i in stat_pack:
         station_num = i[0]
         with sq.connect('db/users.db') as con:
             cur = con.cursor()
-
             cur.execute('''SELECT user_id FROM beta_users WHERE metro_dep=?''', (station_num,))
-            soul_pack = cur.fetchall()
-
-        for i in soul_pack:
+            soul_dep_pack = cur.fetchall()
+        # упаковка подходящих по станции отправления в словарь souls_all
+        for i in soul_dep_pack:
             soul = int(i[0])
             souls_all.append(soul)
+    print('souls all formed', sorted(souls_all))
 
-        return souls_all
+    # поиск подходящих по станции прибытия
+    with sq.connect('db/users.db') as con:
+        cur = con.cursor()
+        cur.execute('''SELECT user_id FROM beta_users WHERE metro_arr=?''', (code_arr,))
+        soul_arr_pack = cur.fetchall()
+    # упаковка подходящих по станции прибытия в словарь souls_arr
+    for i in soul_arr_pack:
+        soul = int(i[0])
+        souls_arr.append(soul)
+    print('souls_arr formed', sorted(souls_arr))
+
+    # исключение не совпадающих по станции прибытия пользователей из словаря souls_all
+    for soul in souls_all:
+        if soul in souls_arr:
+            pass
+        if not soul in souls_arr:
+            print('del index', souls_all.index(soul), 'del soul', soul)
+            del souls_all[souls_all.index(soul)]
+    return souls_all
 
 
 def find_current_souls(souls_all_package):
@@ -133,11 +156,12 @@ def get_soul_info(souls_package, number_one_to_five):
 
 
 m_dep = '2_20'
+m_arr = '5_6'
 
 stats = find_stats(m_dep)
 print('stats', stats)
 
-all_souls = find_all_souls(stats)
+all_souls = find_all_souls(stats, m_arr)
 print('all souls', all_souls)
 
 cur_souls = find_current_souls(all_souls)
