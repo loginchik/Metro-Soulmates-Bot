@@ -1,6 +1,7 @@
 import sqlite3 as sq
 import telebot
 from consts import token
+import random
 
 bot = telebot.TeleBot(token)
 
@@ -51,9 +52,21 @@ def find_stats(station_code):
     return stat_pack
 
 
-def find_souls(stations_pack):
+def get_random_for_souls(souls_all_package):
+    souls_len = len(souls_all_package)
+
+    l = list(range(0, souls_len))
+    random.shuffle(l)
+    m = []
+    for item in l:
+        if l.index(item) < 5:
+            m.append(item)
+    return m
+
+
+def find_all_souls(stations_pack):
     stat_pack = stations_pack
-    souls = []
+    souls_all = []
 
     for i in stat_pack:
         station_num = i[0]
@@ -61,32 +74,71 @@ def find_souls(stations_pack):
             cur = con.cursor()
 
             cur.execute('''SELECT user_id FROM beta_users WHERE metro_dep=?''', (station_num,))
-            soul_pack = cur.fetchmany(5)
-            for i in soul_pack:
-                soul = int(i[0])
-                souls.append(soul)
+            soul_pack = cur.fetchall()
 
-    return souls
+        for i in soul_pack:
+            soul = int(i[0])
+            souls_all.append(soul)
+
+        return souls_all
 
 
-def get_soul_info(souls_package):
+def find_current_souls(souls_all_package):
+    random_nums = get_random_for_souls(souls_all_package)
+    cur_souls = []
+    for soul in souls_all_package:
+        if souls_all_package.index(soul) in random_nums:
+            cur_souls.append(soul)
+    return cur_souls
+
+
+def get_soul_info(souls_package, number_one_to_five):
     soul_info = []
-    souls = souls_package
+
+    if number_one_to_five == 1:
+        num = 0
+    elif number_one_to_five == 2:
+        num = 1
+    elif number_one_to_five == 3:
+        num = 2
+    elif number_one_to_five == 4:
+        num = 3
+    elif number_one_to_five == 5:
+        num = 4
+    else:
+        print('error')
+
+    print(num)
 
     with sq.connect('db/users.db') as con:
         cur = con.cursor()
 
-        for soul in souls:
+        for soul in souls_package:
             cur.execute('''SELECT first_name, nickname, metro_dep, metro_arr FROM beta_users WHERE user_id=?''',
                         (soul,))
             soul_info_pack = cur.fetchall()
-            for i in soul_info_pack:
-                name = i[0]
-                nick = i[1]
-                dep = i[2]
-                arr = i[3]
+            print(soul_info_pack)
+            # for i in soul_info_pack:
+            #     name = i[0]
+            #     nick = i[1]
+            #     dep = i[2]
+            #     arr = i[3]
+            #
+            # soul_info.append(name)
+            # soul_info.append(nick)
+            # soul_info.append(dep)
+            # soul_info.append(arr)
 
-            soul_info.append(name)
-            soul_info.append(nick)
-            soul_info.append(dep)
-            soul_info.append(arr)
+    return soul_info
+
+
+m_dep = '2_20'
+
+stats = find_stats(m_dep)
+print('stats', stats)
+
+all_souls = find_all_souls(stats)
+print('all souls', all_souls)
+
+cur_souls = find_current_souls(all_souls)
+print('cur souls', cur_souls)
