@@ -13,14 +13,10 @@ reg_status = registration_status
 
 
 def write_new_user(user_id, first_name, nickname, metro_dep, metro_arr):
-    global reg_status
-    if reg_status:
-        print("user exists")
-    if not reg_status:
-        with sq.connect('db/users.db') as con:
-            cur = con.cursor()
-            cur.execute('INSERT INTO users (user_id, first_name, nickname, metro_dep, metro_arr)'
-                        'VALUES (?, ?, ?, ?, ?)', (user_id, first_name, nickname, metro_dep, metro_arr))
+    with sq.connect('db/users.db') as con:
+        cur = con.cursor()
+        cur.execute('INSERT INTO users (user_id, first_name, nickname, metro_dep, metro_arr)'
+                    'VALUES (?, ?, ?, ?, ?)', (user_id, first_name, nickname, metro_dep, metro_arr))
 
 
 def check_reg(user_id):
@@ -33,7 +29,6 @@ def check_reg(user_id):
         l = users_exist[0]
         m = ''.join(str(x) for x in l)
         m = int(m)
-        print(m)
         if m > 0:
             reg_status = True
         if m == 0:
