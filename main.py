@@ -199,7 +199,27 @@ def delete_account(message):
 # View account
 @bot.message_handler(commands=['view_acc'])
 def view_acc_func(message):
-    funcs.prof_info(message.from_user.id, message.chat.id)
+    text = funcs.prof_info(message.from_user.id)
+    bot.send_message(message.chat.id, text=text)
+
+
+# Search for souls
+@bot.message_handler(commands=['souls_search'])
+def souls_search_func(message):
+    user_id = message.from_user.id
+    with sq.connect('db/users.db') as con:
+        cur = con.cursor()
+        cur.execute('''SELECT metro_dep, metro_arr FROM users WHERE user_id=?''', (user_id,))
+        st_pack = cur.fetchall()
+        for st in st_pack:
+            m_depa = st[0]
+            m_arri = st[1]
+
+    stats = funcs.find_stats(m_depa)
+    all_souls = funcs.find_all_souls(stats, m_arri, user_id)
+    cur_souls = funcs.find_current_souls(all_souls)
+    soul = funcs.get_soul_info(cur_souls)
+    bot.send_message(message.chat.id, soul)
 
 
 @bot.message_handler(commands=not_working_commands)
