@@ -55,19 +55,13 @@ def checking_registration(message):
         bot.send_message(chat_id, text=consts.acc_exists_text)
         funcs.prof_info(user_1.user_id)
     if not user_reg_stat:
-        get_basic(message, user=user_1)
+        print(user_1.user_id)
+        user_1.name = str(message.from_user.first_name).lower()
+        user_1.nickname = str(message.from_user.username).lower()
 
-
-def get_basic(message, user):
-    global user_1
-
-    print(user_1.user_id)
-    user_1.name = str(message.from_user.first_name).lower()
-    user_1.nickname = str(message.from_user.username).lower()
-
-    # follow next step
-    send = bot.send_message(message.chat.id, text=consts.mdep_ask_text)
-    bot.register_next_step_handler(send, get_dep)
+        # follow next step
+        send = bot.send_message(message.chat.id, text=consts.mdep_ask_text)
+        bot.register_next_step_handler(send, get_dep)
 
 
 def get_dep(message):
