@@ -3,28 +3,32 @@ import sqlite3 as sq
 
 import telebot
 
-from consts import registration_status
+import classes
 # import globals
 from consts import token
 
 # bot identify
 bot = telebot.TeleBot(token)
 
-# globals
-reg_status = registration_status
+soul_1 = classes.User(None)
 
 
 def write_new_user(user_id, first_name, nickname, metro_dep, metro_arr):
     with sq.connect('db/users.db') as con:
-        con.cursor().execute('INSERT INTO users (user_id, first_name, nickname, metro_dep, metro_arr)'
-                             'VALUES (?, ?, ?, ?, ?)', (user_id, first_name, nickname, metro_dep, metro_arr))
+        cur = con.cursor()
+        cur.execute('INSERT INTO users (user_id, first_name, nickname, metro_dep, metro_arr)'
+                    'VALUES (?, ?, ?, ?, ?)', (user_id, first_name, nickname, metro_dep, metro_arr))
+        con.commit()
 
 
 def check_reg(user_id):
-    global reg_status
+    reg_status = None
     with sq.connect('db/users.db') as con:
-        con.cursor().execute("SELECT count(user_id) FROM users WHERE user_id=?", (user_id,))
-        users_exist = con.cursor().fetchall()
+        cur = con.cursor()
+
+        cur.execute("SELECT count(user_id) FROM users WHERE user_id=?", (user_id,))
+        users_exist = cur.fetchall()
+
         # Get number of existing users with this user_id
         k = users_exist[0]
         m = ''.join(str(x) for x in k)
@@ -34,40 +38,50 @@ def check_reg(user_id):
         if m == 0:
             reg_status = False
 
+    return reg_status
+
 
 def prof_info(user_id):
+    user = classes.User(user_id)
+
     with sq.connect('db/users.db') as con:
-        con.cursor().execute("SELECT * FROM users WHERE user_id=?", (user_id,))
-        user_info = con.cursor().fetchall()
+        cur = con.cursor()
+
+        cur.execute("SELECT * FROM users WHERE user_id=?", (user.user_id,))
+        user_info = cur.fetchall()
 
         # Unpack dict
         for key in user_info:
-            us_f_name = key[2]
-            us_nick = key[3]
-            us_m_dep_code = key[4]
-            us_m_arr_code = key[5]
+            user.name = key[2]
+            user.nickname = key[3]
+            user.dep_code = key[4]
+            user.arr_code = key[5]
 
     with sq.connect('db/metro.db') as con:
-        con.cursor().execute('SELECT way, name FROM stations_coo WHERE code=?', (us_m_dep_code,))
-        for name in con.cursor().fetchall():
-            us_way_dep = name[0]
-            us_m_dep = name[1]
+        cur = con.cursor()
 
-        con.cursor().execute('SELECT way, name FROM stations_coo WHERE code=?', (us_m_arr_code,))
-        for name in con.cursor().fetchall():
-            us_way_arr = name[0]
-            us_m_arr = name[1]
+        cur.execute('SELECT way, name FROM stations_coo WHERE code=?', (user.dep_code,))
+        for name in cur.fetchall():
+            user.dep_way = name[0]
+            user.dep_name = name[1]
 
-    text = "Имя — " + str(us_f_name).title() + '\n' + "Ник в телеграме — @" + str(us_nick) + \
-           '\n\n' + "Метро отправленя: \n" + str(us_m_dep).title() + " (" + str(us_way_dep) + \
-           " линия метро)\n" + '\n' + "Метро прибытия: \n" + str(us_m_arr).title() + " (" + str(us_way_arr) + \
-           " линия метро)"
+        cur.execute('SELECT way, name FROM stations_coo WHERE code=?', (user.arr_code,))
+        for name in cur.fetchall():
+            user.arr_way = name[0]
+            user.arr_name = name[1]
+    text = "Имя — " + str(user.name).title() + '\n' + "Ник в телеграме — @" + str(user.nickname) + \
+           '\n\n' + "Метро отправленя: \n" + str(user.dep_name).title() + " (" + str(user.dep_way) + \
+           " линия метро)\n" + '\n' + "Метро прибытия: \n" + str(user.arr_name).title() + \
+           " (" + str(user.arr_way) + " линия метро)"
     return text
 
 
 def remove_user(user_id):
     with sq.connect('db/users.db') as con:
-        con.cursor().execute("DELETE FROM users WHERE user_id=?", (user_id,))
+        cur = con.cursor()
+
+        cur.execute("DELETE FROM users WHERE user_id=?", (user_id,))
+        con.commit()
 
 
 # ------- souls search funcs block -------
@@ -100,16 +114,18 @@ def get_random_for_souls(souls_all_package):
 # поиск станций отправления, которые войдут в обработку
 def find_stats(station_code):
     with sq.connect('db/metro.db') as con:
+        cur = con.cursor()
+
         # получает код станции и определяет ее путь и номер
-        con.cursor().execute('''SELECT way, number FROM stations_coo WHERE code=?''', (station_code,))
-        pack = con.cursor().fetchall()
+        cur.execute('''SELECT way, number FROM stations_coo WHERE code=?''', (station_code,))
+        pack = cur.fetchall()
         way = get_way(pack)
         number = get_num(pack)
 
         # определяет и запаковывает в список перечень подходящих станций
-        con.cursor().execute('''SELECT code FROM stations_coo WHERE way=? AND 
+        cur.execute('''SELECT code FROM stations_coo WHERE way=? AND 
                                                     (number BETWEEN ?-2 AND ?+2)''', (way, number, number))
-        stat_pack = con.cursor().fetchall()
+        stat_pack = cur.fetchall()
 
     return stat_pack
 
@@ -133,8 +149,10 @@ def find_all_souls(stations_pack, code_arr, user_id):
     for i in stat_pack:
         station_num = i[0]
         with sq.connect('db/users.db') as con:
-            con.cursor().execute('''SELECT user_id FROM beta_users WHERE metro_dep=?''', (station_num,))
-            soul_dep_pack = con.cursor().fetchall()
+            cur = con.cursor()
+
+            cur.execute('''SELECT user_id FROM beta_users WHERE metro_dep=?''', (station_num,))
+            soul_dep_pack = cur.fetchall()
         # упаковка подходящих по станции отправления в словарь souls_all
         for m in soul_dep_pack:
             soul = int(m[0])
@@ -149,8 +167,10 @@ def find_all_souls(stations_pack, code_arr, user_id):
 
     # поиск подходящих по станции прибытия
     with sq.connect('db/users.db') as con:
-        con.cursor().execute('''SELECT user_id FROM beta_users WHERE metro_arr=?''', (code_arr,))
-        soul_arr_pack = con.cursor().fetchall()
+        cur = con.cursor()
+
+        cur.execute('''SELECT user_id FROM beta_users WHERE metro_arr=?''', (code_arr,))
+        soul_arr_pack = cur.fetchall()
     # упаковка подходящих по станции прибытия в словарь souls_arr
     for i in soul_arr_pack:
         soul = int(i[0])
@@ -175,40 +195,43 @@ def find_current_souls(souls_all_package):
 
 
 def get_soul_info(current_souls_package):
-    name = ''
-    dep = ''
-    arr = ''
-    nick = ''
+    global soul_1
+
     for soul in current_souls_package:
         soul_id = soul
         with sq.connect('db/users.db') as con:
-            con.cursor().execute(
+            cur = con.cursor()
+
+            cur.execute(
                 '''SELECT first_name, nickname, metro_dep, metro_arr FROM beta_users WHERE user_id=?''',
                 (soul_id,))
             soul_info = con.cursor().fetchall()
         for i in soul_info:
-            name = i[0]
-            nick = i[1]
-            dep = i[2]
-            arr = i[3]
+            soul_1.name = i[0]
+            soul_1.nickname = i[1]
+            soul_1.dep_code = i[2]
+            soul_1.arr_code = i[3]
 
     with sq.connect('db/metro.db') as con:
-        con.cursor().execute('''SELECT way, name FROM stations_coo WHERE code=?''', (dep,))
-        dep_pack = con.cursor().fetchall()
-        for i in dep_pack:
-            dep_way = i[0]
-            dep_st = i[1]
-        con.cursor().execute('''SELECT way, name FROM stations_coo WHERE code=?''', (arr,))
-        arr_pack = con.cursor().fetchall()
-        for i in arr_pack:
-            arr_way = i[0]
-            arr_st = i[1]
+        cur = con.cursor()
 
-    info = 'Имя вашего соула: ' + str(name).capitalize() + '\n' + \
-           'Вы можете написать ему: @' + nick + '\n\n' + \
-           'В своей анкете ' + str(name).capitalize() + \
-           ' указывает, что отправляется со станции "' + str(dep_st).title() + '" (' + str(dep_way) + ' линия)' + \
-           ' и ездит на станцию "' + str(arr_st).title() + '"' + ' (' + str(arr_way) + ' линия)'
+        cur.execute('''SELECT way, name FROM stations_coo WHERE code=?''', (soul_1.dep_code,))
+        dep_pack = cur.fetchall()
+        for i in dep_pack:
+            soul_1.dep_way = i[0]
+            soul_1.dep_name = i[1]
+        cur.execute('''SELECT way, name FROM stations_coo WHERE code=?''', (soul_1.arr_code,))
+        arr_pack = cur.fetchall()
+        for i in arr_pack:
+            soul_1.arr_way = i[0]
+            soul_1.arr_name = i[1]
+
+    info = 'Имя вашего соула: ' + str(soul_1.name).capitalize() + '\n' + \
+           'Вы можете написать ему: @' + str(soul_1.nickname) + '\n\n' + \
+           'В своей анкете ' + str(soul_1.name).capitalize() + \
+           ' указывает, что отправляется со станции "' + str(soul_1.dep_name).title() + '" (' + str(soul_1.dep_way) + \
+           ' линия)' + \
+           ' и ездит на станцию "' + str(soul_1.arr_name).title() + '"' + ' (' + str(soul_1.arr_way) + ' линия)'
     return info
 
 # ------- the end of souls search funcs block -------
