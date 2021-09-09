@@ -1,14 +1,11 @@
 import random
 import sqlite3 as sq
-
 import telebot
-
 import classes
-# import globals
-from consts import token
+import consts
 
 # bot identify
-bot = telebot.TeleBot(token)
+bot = telebot.TeleBot(consts.token)
 
 soul_1 = classes.User(None)
 
