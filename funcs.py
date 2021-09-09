@@ -1,6 +1,8 @@
 import random
 import sqlite3 as sq
+
 import telebot
+
 import classes
 import consts
 
@@ -8,6 +10,10 @@ import consts
 bot = telebot.TeleBot(consts.token)
 
 soul_1 = classes.User(None)
+
+
+def func_error(chat_id):
+    bot.send_message(chat_id, text=consts.any_error_text)
 
 
 def write_new_user(user_id, first_name, nickname, metro_dep, metro_arr):

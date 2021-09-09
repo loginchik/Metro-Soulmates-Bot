@@ -1,13 +1,8 @@
 import sqlite3 as sq
-
 import telebot
-
 import classes
-# texts import
 import consts
 import funcs
-
-# globals import
 
 bot = telebot.TeleBot(consts.token)
 
@@ -44,18 +39,13 @@ def about_func(message):
 @bot.message_handler(commands=['register'])
 def checking_registration(message):
     global user_1
-
-    user_data = message.from_user
-    user_1 = classes.User(user_data.id)
-
     chat_id = message.chat.id
-    user_reg_stat = funcs.check_reg(user_1.user_id)
 
-    if user_reg_stat:
+    if user_1.reg_status:
         bot.send_message(chat_id, text=consts.acc_exists_text)
         funcs.prof_info(user_1.user_id)
-    if not user_reg_stat:
-        print(user_1.user_id)
+    else:
+        user_1.user_id = int(message.from_user.id)
         user_1.name = str(message.from_user.first_name).lower()
         user_1.nickname = str(message.from_user.username).lower()
 
@@ -97,20 +87,38 @@ def get_dep(message):
 def few_ways_st_dep(message):
     global user_1
 
-    user_1.dep_way = int(message.text)
+    way = int(message.text)
 
     with sq.connect('db/metro.db') as con:
         cur = con.cursor()
 
-        cur.execute("SELECT code FROM stations_coo WHERE name=? AND way=?", (user_1.dep_name, user_1.dep_way))
-        code_pack = cur.fetchall()
-        for code in code_pack:
-            code_dep = str(''.join(code)).lower()
-        user_1.dep_code = code_dep
+        cur.execute('''SELECT count(*) FROM stations_coo WHERE way=? AND name=?''', (way, user_1.dep_name))
+        got = cur.fetchone()
+        for i in got:
+            print(i)
+            if i > 0:
+                exists = True
+            else:
+                exists = False
 
-        # follow next step
-        send = bot.send_message(message.chat.id, text=consts.marr_ask_text)
-        bot.register_next_step_handler(send, get_arr)
+    if exists:
+        user_1.dep_way = way
+
+        with sq.connect('db/metro.db') as con:
+            cur = con.cursor()
+
+            cur.execute("SELECT code FROM stations_coo WHERE name=? AND way=?", (user_1.dep_name, user_1.dep_way))
+            code_pack = cur.fetchall()
+            for code in code_pack:
+                code_dep = str(''.join(code)).lower()
+            user_1.dep_code = code_dep
+
+            # follow next step
+            send = bot.send_message(message.chat.id, text=consts.marr_ask_text)
+            bot.register_next_step_handler(send, get_arr)
+
+    if not exists:
+        bot.send_message(message.chat.id, text=consts.few_ways_no_station_text)
 
 
 def get_arr(message):
@@ -149,23 +157,41 @@ def get_arr(message):
 def few_ways_st_arr(message):
     global user_1
 
-    user_1.arr_way = int(message.text)
+    way = int(message.text)
 
     with sq.connect('db/metro.db') as con:
         cur = con.cursor()
 
-        cur.execute('''SELECT code FROM stations_coo WHERE name=? AND way=?''', (user_1.arr_name, user_1.arr_way))
-        code_pack = cur.fetchall()
-        for code in code_pack:
-            code_arr = str(''.join(code)).lower()
-        user_1.arr_code = code_arr
+        cur.execute('''SELECT count(*) FROM stations_coo WHERE way=? AND name=?''', (way, user_1.arr_name))
+        got = cur.fetchone()
+        for i in got:
+            if i > 0:
+                exists = True
+            else:
+                exists = False
+
+    if exists:
+        user_1.arr_way = way
+
+        with sq.connect('db/metro.db') as con:
+            cur = con.cursor()
+
+            cur.execute('''SELECT code FROM stations_coo WHERE name=? AND way=?''', (user_1.arr_name, user_1.arr_way))
+            code_pack = cur.fetchall()
+            for code in code_pack:
+                code_arr = str(''.join(code)).lower()
+            user_1.arr_code = code_arr
         funcs.write_new_user(user_id=user_1.user_id,
                              first_name=user_1.name,
                              nickname=user_1.nickname,
                              metro_dep=user_1.dep_code,
                              metro_arr=user_1.arr_code
                              )
+        user_1.reg_status = True
         bot.send_message(message.chat.id, text=consts.acc_create_conf_text)
+
+    if not exists:
+        bot.send_message(message.chat.id, text=consts.few_ways_no_station_text)
 
 
 # Delete account
@@ -174,20 +200,24 @@ def delete_account(message):
     global user_1
     chat_id = message.chat.id
 
-    if user_1.user_id == message.from_user.id:
+    if not user_1.reg_status:
+        bot.send_message(chat_id, text=consts.no_registration_error_text)
+    if user_1.reg_status:
         funcs.remove_user(user_1.user_id)
-    else:
-        user_1.user_id = message.from_user.id
-        funcs.remove_user(user_1.user_id)
-
-    bot.send_message(chat_id, consts.acc_del_conf_text)
+        bot.send_message(chat_id, consts.acc_del_conf_text)
+        user_1.delete_account()
 
 
 # View account
 @bot.message_handler(commands=['view_acc'])
 def view_acc_func(message):
-    text = funcs.prof_info(message.from_user.id)
-    bot.send_message(message.chat.id, text=text)
+    global user_1
+
+    if user_1.reg_status:
+        text = funcs.prof_info(message.from_user.id)
+        bot.send_message(message.chat.id, text=text)
+    if not user_1.reg_status:
+        bot.send_message(message.chat.id, text=consts.no_registration_error_text)
 
 
 # Search for souls
@@ -196,15 +226,18 @@ def souls_search_func(message):
     global user_1
     chat_id = message.chat.id
 
-    stats = funcs.find_stats(user_1.dep_code)
-    souls_exist_bool = funcs.check_souls_exist(stats)
-    if souls_exist_bool:
-        all_souls = funcs.find_all_souls(stats, user_1.arr_code, user_1.user_id)
-        cur_souls = funcs.find_current_souls(all_souls)
-        soul = funcs.get_soul_info(cur_souls)
-        bot.send_message(chat_id, text=soul)
-    else:
-        bot.send_message(chat_id, text=consts.no_souls_found_text)
+    if user_1.reg_status:
+        stats = funcs.find_stats(user_1.dep_code)
+        souls_exist_bool = funcs.check_souls_exist(stats)
+        if souls_exist_bool:
+            all_souls = funcs.find_all_souls(stats, user_1.arr_code, user_1.user_id)
+            cur_souls = funcs.find_current_souls(all_souls)
+            soul = funcs.get_soul_info(cur_souls)
+            bot.send_message(chat_id, text=soul)
+        else:
+            bot.send_message(chat_id, text=consts.no_souls_found_text)
+    if not user_1.reg_status:
+        bot.send_message(chat_id, text=consts.no_registration_error_text)
 
 
 @bot.message_handler(commands=not_working_commands)
