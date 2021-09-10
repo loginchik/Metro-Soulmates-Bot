@@ -1,5 +1,7 @@
 import sqlite3 as sq
+
 import telebot
+
 import classes
 import consts
 import funcs
@@ -74,14 +76,15 @@ def get_dep(message):
             code_pack = cur.fetchall()
             for code in code_pack:
                 code_dep = str(''.join(code)).lower()
-            user_1.dep_code = code_dep
+    user_1.dep_code = code_dep
 
-            # follow next step
-            send = bot.send_message(message.chat.id, text=consts.marr_ask_text)
-            bot.register_next_step_handler(send, get_arr)
-        if stats_num_cur > 1:
-            way_num = bot.send_message(message.chat.id, text=consts.way_ask_text)
-            bot.register_next_step_handler(way_num, few_ways_st_dep)
+    # follow next step
+    send = bot.send_message(message.chat.id, text=consts.marr_ask_text)
+    bot.register_next_step_handler(send, get_arr)
+
+    if stats_num_cur > 1:
+        way_num = bot.send_message(message.chat.id, text=consts.way_ask_text)
+        bot.register_next_step_handler(way_num, few_ways_st_dep)
 
 
 def few_ways_st_dep(message):
@@ -111,11 +114,11 @@ def few_ways_st_dep(message):
             code_pack = cur.fetchall()
             for code in code_pack:
                 code_dep = str(''.join(code)).lower()
-            user_1.dep_code = code_dep
+        user_1.dep_code = code_dep
 
-            # follow next step
-            send = bot.send_message(message.chat.id, text=consts.marr_ask_text)
-            bot.register_next_step_handler(send, get_arr)
+        # follow next step
+        send = bot.send_message(message.chat.id, text=consts.marr_ask_text)
+        bot.register_next_step_handler(send, get_arr)
 
     if not exists:
         bot.send_message(message.chat.id, text=consts.few_ways_no_station_text)
@@ -135,23 +138,23 @@ def get_arr(message):
         for stats_num in stats_here:
             stats_num_cur = stats_num[0]
 
-        if stats_num_cur == 0:
-            bot.send_message(message.chat.id, text=consts.no_station_error_text)
-        if stats_num_cur == 1:
-            cur.execute("SELECT code FROM stations_coo WHERE name=?", (user_1.arr_name,))
-            code_pack = cur.fetchall()
-            for code in code_pack:
-                code_arr = str(''.join(code)).lower()
-            user_1.arr_code = code_arr
-            funcs.write_new_user(user_id=user_1.user_id,
-                                 first_name=user_1.name,
-                                 nickname=user_1.nickname,
-                                 metro_dep=user_1.dep_code,
-                                 metro_arr=user_1.arr_code
-                                 )
-        if stats_num_cur > 1:
-            way_num = bot.send_message(message.chat.id, text=consts.way_ask_text)
-            bot.register_next_step_handler(way_num, few_ways_st_arr)
+    if stats_num_cur == 0:
+        bot.send_message(message.chat.id, text=consts.no_station_error_text)
+    if stats_num_cur == 1:
+        cur.execute("SELECT code FROM stations_coo WHERE name=?", (user_1.arr_name,))
+        code_pack = cur.fetchall()
+        for code in code_pack:
+            code_arr = str(''.join(code)).lower()
+        user_1.arr_code = code_arr
+        funcs.write_new_user(user_id=user_1.user_id,
+                             first_name=user_1.name,
+                             nickname=user_1.nickname,
+                             metro_dep=user_1.dep_code,
+                             metro_arr=user_1.arr_code
+                             )
+    if stats_num_cur > 1:
+        way_num = bot.send_message(message.chat.id, text=consts.way_ask_text)
+        bot.register_next_step_handler(way_num, few_ways_st_arr)
 
 
 def few_ways_st_arr(message):
@@ -180,7 +183,7 @@ def few_ways_st_arr(message):
             code_pack = cur.fetchall()
             for code in code_pack:
                 code_arr = str(''.join(code)).lower()
-            user_1.arr_code = code_arr
+        user_1.arr_code = code_arr
         funcs.write_new_user(user_id=user_1.user_id,
                              first_name=user_1.name,
                              nickname=user_1.nickname,
