@@ -1,5 +1,6 @@
 import sqlite3 as sq
 import consts
+import funcs
 
 from functions_fold import about_funcs, account_funcs, help_funcs, soulmates_search_funcs
 
@@ -49,6 +50,7 @@ def sorry_no(message):
 
 
 def listener(messages):
+    global user_1
     for message in messages:
         chat_id = message.chat.id
         user_id = message.chat.id
@@ -71,7 +73,10 @@ def listener(messages):
                 account_funcs.view_acc_func(message)
             if new_msg == '/souls_search':
                 get_curr_user_1(user_id)
-                soulmates_search_funcs.souls_search_func(message)
+                if user_1.reg_status:
+                    soulmates_search_funcs.main_find_souls(user_1, user_id, chat_id)
+                else:
+                    funcs.func_error(chat_id)
 
         if message.content_type == 'photo':
             bot.send_message(chat_id, 'Как жаль, что я не могу понять, что вы прислали')
