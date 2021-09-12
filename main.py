@@ -7,9 +7,9 @@ import consts
 import funcs
 
 bot = telebot.TeleBot(consts.token)
-
-not_working_commands = consts.not_working_commands
 user_1 = classes.User(None)
+not_working_commands = consts.not_working_commands
+
 
 # Creating a users table if not exists
 with sq.connect('db/users.db') as con:
@@ -25,20 +25,25 @@ with sq.connect('db/users.db') as con:
     con.commit()
 
 
-@bot.message_handler(commands=['start', 'help'])
+# @bot.message_handler(commands=['start', 'help'])
 def help_func(message):
     chat_id = message.chat.id
     bot.send_message(chat_id, text=consts.help_text)
 
 
-@bot.message_handler(commands=['about'])
+# @bot.message_handler(commands=['about'])
 def about_func(message):
     chat_id = message.chat.id
     bot.send_message(chat_id, text=consts.about_text)
 
 
 # Register user
-@bot.message_handler(commands=['register'])
+# @bot.message_handler(commands=['register'])
+
+def main_registration(message):
+    checking_registration(message)
+
+
 def checking_registration(message):
     global user_1
     chat_id = message.chat.id
@@ -76,7 +81,7 @@ def get_dep(message):
             code_pack = cur.fetchall()
             for code in code_pack:
                 code_dep = str(''.join(code)).lower()
-    user_1.dep_code = code_dep
+            user_1.dep_code = code_dep
 
     # follow next step
     send = bot.send_message(message.chat.id, text=consts.marr_ask_text)
@@ -145,7 +150,7 @@ def get_arr(message):
         code_pack = cur.fetchall()
         for code in code_pack:
             code_arr = str(''.join(code)).lower()
-        user_1.arr_code = code_arr
+            user_1.arr_code = code_arr
         funcs.write_new_user(user_id=user_1.user_id,
                              first_name=user_1.name,
                              nickname=user_1.nickname,
@@ -198,7 +203,7 @@ def few_ways_st_arr(message):
 
 
 # Delete account
-@bot.message_handler(commands=['delete_acc'])
+# @bot.message_handler(commands=['delete_acc'])
 def delete_account(message):
     global user_1
     chat_id = message.chat.id
@@ -212,7 +217,7 @@ def delete_account(message):
 
 
 # View account
-@bot.message_handler(commands=['view_acc'])
+# @bot.message_handler(commands=['view_acc'])
 def view_acc_func(message):
     global user_1
 
@@ -224,7 +229,7 @@ def view_acc_func(message):
 
 
 # Search for souls
-@bot.message_handler(commands=['souls_search'])
+# @bot.message_handler(commands=['souls_search'])
 def souls_search_func(message):
     global user_1
     chat_id = message.chat.id
@@ -248,4 +253,29 @@ def sorry_no(message):
     bot.send_message(message.chat.id, text=consts.no_func_text)
 
 
+def listener(messages):
+    for message in messages:
+        chat_id = message.chat.id
+
+        if message.content_type == 'text':
+            new_msg = str(message.text).lower()
+
+            if new_msg == '/help':
+                help_func(message)
+            if new_msg == '/about':
+                about_func(message)
+            if new_msg == 'register':
+                main_registration(message)
+            if new_msg == '/delete_acc':
+                delete_account(message)
+            if new_msg == '/view_acc':
+                view_acc_func(message)
+            if new_msg == '/souls_search':
+                souls_search_func(message)
+
+        if message.content_type == 'photo':
+            bot.send_message(chat_id, 'Как жаль, что я не могу понять, что вы прислали')
+
+
+bot.set_update_listener(listener)
 bot.polling()
