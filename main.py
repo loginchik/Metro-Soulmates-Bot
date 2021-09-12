@@ -1,10 +1,9 @@
 import sqlite3 as sq
-
 import telebot
-
 import classes
 import consts
 import funcs
+
 
 bot = telebot.TeleBot(consts.token)
 user_1 = classes.User(None)
@@ -25,24 +24,17 @@ with sq.connect('db/users.db') as con:
     con.commit()
 
 
-# @bot.message_handler(commands=['start', 'help'])
 def help_func(message):
     chat_id = message.chat.id
     bot.send_message(chat_id, text=consts.help_text)
 
 
-# @bot.message_handler(commands=['about'])
 def about_func(message):
     chat_id = message.chat.id
     bot.send_message(chat_id, text=consts.about_text)
 
 
 # Register user
-# @bot.message_handler(commands=['register'])
-
-def main_registration(message):
-    checking_registration(message)
-
 
 def checking_registration(message):
     global user_1
@@ -67,7 +59,7 @@ def get_dep(message):
     # saving metro dep
     user_1.dep_name = str(message.text).lower()
 
-    with sq.connect('db/metro.db') as con:
+    with sq.connect('../db/metro.db') as con:
         cur = con.cursor()
         cur.execute('''SELECT count(code) as stats_here FROM stations_coo WHERE name=?''', (user_1.dep_name,))
         stats_here = cur.fetchall()
@@ -83,9 +75,9 @@ def get_dep(message):
                 code_dep = str(''.join(code)).lower()
             user_1.dep_code = code_dep
 
-    # follow next step
-    send = bot.send_message(message.chat.id, text=consts.marr_ask_text)
-    bot.register_next_step_handler(send, get_arr)
+            # follow next step
+            send = bot.send_message(message.chat.id, text=consts.marr_ask_text)
+            bot.register_next_step_handler(send, get_arr)
 
     if stats_num_cur > 1:
         way_num = bot.send_message(message.chat.id, text=consts.way_ask_text)
@@ -97,7 +89,7 @@ def few_ways_st_dep(message):
 
     way = int(message.text)
 
-    with sq.connect('db/metro.db') as con:
+    with sq.connect('../db/metro.db') as con:
         cur = con.cursor()
 
         cur.execute('''SELECT count(*) FROM stations_coo WHERE way=? AND name=?''', (way, user_1.dep_name))
@@ -112,7 +104,7 @@ def few_ways_st_dep(message):
     if exists:
         user_1.dep_way = way
 
-        with sq.connect('db/metro.db') as con:
+        with sq.connect('../db/metro.db') as con:
             cur = con.cursor()
 
             cur.execute("SELECT code FROM stations_coo WHERE name=? AND way=?", (user_1.dep_name, user_1.dep_way))
@@ -135,7 +127,7 @@ def get_arr(message):
     # save metro arr
     user_1.arr_name = str(message.text).lower()
 
-    with sq.connect('db/metro.db') as con:
+    with sq.connect('../db/metro.db') as con:
         cur = con.cursor()
 
         cur.execute('''SELECT count(code) as stats_here FROM stations_coo WHERE name=?''', (user_1.arr_name,))
@@ -167,7 +159,7 @@ def few_ways_st_arr(message):
 
     way = int(message.text)
 
-    with sq.connect('db/metro.db') as con:
+    with sq.connect('../db/metro.db') as con:
         cur = con.cursor()
 
         cur.execute('''SELECT count(*) FROM stations_coo WHERE way=? AND name=?''', (way, user_1.arr_name))
@@ -181,7 +173,7 @@ def few_ways_st_arr(message):
     if exists:
         user_1.arr_way = way
 
-        with sq.connect('db/metro.db') as con:
+        with sq.connect('../db/metro.db') as con:
             cur = con.cursor()
 
             cur.execute('''SELECT code FROM stations_coo WHERE name=? AND way=?''', (user_1.arr_name, user_1.arr_way))
@@ -203,7 +195,6 @@ def few_ways_st_arr(message):
 
 
 # Delete account
-# @bot.message_handler(commands=['delete_acc'])
 def delete_account(message):
     global user_1
     chat_id = message.chat.id
@@ -217,7 +208,6 @@ def delete_account(message):
 
 
 # View account
-# @bot.message_handler(commands=['view_acc'])
 def view_acc_func(message):
     global user_1
 
@@ -229,7 +219,6 @@ def view_acc_func(message):
 
 
 # Search for souls
-# @bot.message_handler(commands=['souls_search'])
 def souls_search_func(message):
     global user_1
     chat_id = message.chat.id
@@ -264,8 +253,8 @@ def listener(messages):
                 help_func(message)
             if new_msg == '/about':
                 about_func(message)
-            if new_msg == 'register':
-                main_registration(message)
+            if new_msg == '/register':
+                checking_registration(message)
             if new_msg == '/delete_acc':
                 delete_account(message)
             if new_msg == '/view_acc':

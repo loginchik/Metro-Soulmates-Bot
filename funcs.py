@@ -87,8 +87,8 @@ def remove_user(user_id):
         con.commit()
 
 
-# ------- souls search funcs block -------
-# 2 funcs for station identification
+# ------- souls search funcssss block -------
+# 2 funcssss for station identification
 def get_way(package):
     for i in package:
         w = i[0]
@@ -101,7 +101,7 @@ def get_num(package):
         return n
 
 
-# technical funcs
+# technical funcssss
 def get_random_for_souls(souls_all_package):
     souls_len = len(souls_all_package)
 
@@ -237,4 +237,4 @@ def get_soul_info(current_souls_package):
            ' и ездит на станцию "' + str(soul_1.arr_name).title() + '"' + ' (' + str(soul_1.arr_way) + ' линия)'
     return info
 
-# ------- the end of souls search funcs block -------
+# ------- the end of souls search funcssss block -------
