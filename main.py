@@ -59,7 +59,7 @@ def get_dep(message):
     # saving metro dep
     user_1.dep_name = str(message.text).lower()
 
-    with sq.connect('../db/metro.db') as con:
+    with sq.connect('db/metro.db') as con:
         cur = con.cursor()
         cur.execute('''SELECT count(code) as stats_here FROM stations_coo WHERE name=?''', (user_1.dep_name,))
         stats_here = cur.fetchall()
@@ -89,7 +89,7 @@ def few_ways_st_dep(message):
 
     way = int(message.text)
 
-    with sq.connect('../db/metro.db') as con:
+    with sq.connect('db/metro.db') as con:
         cur = con.cursor()
 
         cur.execute('''SELECT count(*) FROM stations_coo WHERE way=? AND name=?''', (way, user_1.dep_name))
@@ -104,7 +104,7 @@ def few_ways_st_dep(message):
     if exists:
         user_1.dep_way = way
 
-        with sq.connect('../db/metro.db') as con:
+        with sq.connect('db/metro.db') as con:
             cur = con.cursor()
 
             cur.execute("SELECT code FROM stations_coo WHERE name=? AND way=?", (user_1.dep_name, user_1.dep_way))
@@ -127,7 +127,7 @@ def get_arr(message):
     # save metro arr
     user_1.arr_name = str(message.text).lower()
 
-    with sq.connect('../db/metro.db') as con:
+    with sq.connect('db/metro.db') as con:
         cur = con.cursor()
 
         cur.execute('''SELECT count(code) as stats_here FROM stations_coo WHERE name=?''', (user_1.arr_name,))
@@ -159,7 +159,7 @@ def few_ways_st_arr(message):
 
     way = int(message.text)
 
-    with sq.connect('../db/metro.db') as con:
+    with sq.connect('db/metro.db') as con:
         cur = con.cursor()
 
         cur.execute('''SELECT count(*) FROM stations_coo WHERE way=? AND name=?''', (way, user_1.arr_name))
@@ -173,7 +173,7 @@ def few_ways_st_arr(message):
     if exists:
         user_1.arr_way = way
 
-        with sq.connect('../db/metro.db') as con:
+        with sq.connect('db/metro.db') as con:
             cur = con.cursor()
 
             cur.execute('''SELECT code FROM stations_coo WHERE name=? AND way=?''', (user_1.arr_name, user_1.arr_way))
