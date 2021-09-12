@@ -1,6 +1,12 @@
+import classes
+import telebot
+
 # consts
 token = '1981840763:AAFZr6Dk58S_rpHLEX6wjxcqFA12Ys0rUmA'
 not_working_commands = ['review', 'edit_account']
+
+user = classes.User(None)
+bot = telebot.TeleBot(token)
 
 # texts
 about_text = 'Этот бот предназначен для поиска соулмейта на метро. Работает только для вышкинцев (по крайней мере ' \
