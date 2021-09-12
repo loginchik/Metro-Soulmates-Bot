@@ -30,14 +30,10 @@ def get_curr_user_1(user_id):
 
         cur.execute('''SELECT user_id FROM users WHERE user_id=?''', (user_id,))
         pack = cur.fetchall()
-        print(len(pack))
-
         if len(pack) == 0:
             user_1.reg_status = False
-
         if len(pack) > 0:
             user_1.reg_status = True
-
             cur.execute('''SELECT first_name, nickname, metro_dep, metro_arr FROM users WHERE user_id=?''', (user_id,))
             pack = cur.fetchall()
             for i in pack:
