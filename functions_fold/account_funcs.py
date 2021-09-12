@@ -78,7 +78,6 @@ def checking_registration(message):
 
     user_1.reg_status = check_reg_status(user_id)
 
-    print(user_1.reg_status)
 
     if user_1.reg_status:
         bot.send_message(chat_id, text=consts.acc_exists_text)

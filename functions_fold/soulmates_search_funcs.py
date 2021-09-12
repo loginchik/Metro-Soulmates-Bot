@@ -9,7 +9,6 @@ bot = consts.bot
 soul_1 = classes.User(None)
 
 
-# поиск станций отправления, которые войдут в обработку
 def find_dep_stats(dep_station_code):
     with sq.connect('db/metro.db') as con:
         cur = con.cursor()

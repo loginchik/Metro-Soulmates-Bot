@@ -58,7 +58,7 @@ def listener(messages):
         if message.content_type == 'text':
             new_msg = str(message.text).lower()
 
-            if new_msg == '/help':
+            if new_msg == '/help' or '/start':
                 help_funcs.help_func(message)
             if new_msg == '/about':
                 about_funcs.about_func(message)
@@ -76,7 +76,7 @@ def listener(messages):
                 if user_1.reg_status:
                     soulmates_search_funcs.main_find_souls(user_1, user_id, chat_id)
                 else:
-                    funcs.func_error(chat_id)
+                    bot.send_message(chat_id, text=consts.no_registration_error_text)
 
         if message.content_type == 'photo':
             bot.send_message(chat_id, 'Как жаль, что я не могу понять, что вы прислали')
