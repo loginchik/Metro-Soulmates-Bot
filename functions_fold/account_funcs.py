@@ -1,6 +1,7 @@
 import consts
 import sqlite3 as sq
 import classes
+import funcs
 
 user_1 = consts.user
 bot = consts.bot
@@ -50,12 +51,7 @@ def prof_info(user_id):
     return text
 
 
-# Registration
-def checking_registration(message):
-    global user_1
-    chat_id = message.chat.id
-    user_id = message.from_user.id
-
+def check_reg_status(user_id):
     with sq.connect('db/users.db') as con:
         cur = con.cursor()
 
@@ -67,9 +63,20 @@ def checking_registration(message):
         m = ''.join(str(x) for x in k)
         m = int(m)
         if m > 0:
-            user_1.reg_status = True
+            reg_status = True
         if m == 0:
-            user_1.reg_status = False
+            reg_status = False
+
+    return reg_status
+
+
+# Registration
+def checking_registration(message):
+    global user_1
+    chat_id = message.chat.id
+    user_id = message.from_user.id
+
+    user_1.reg_status = check_reg_status(user_id)
 
     print(user_1.reg_status)
 
@@ -228,20 +235,30 @@ def few_ways_st_arr(message):
 
 
 # Delete account
+def remove_user(user_id):
+    with sq.connect('db/users.db') as con:
+        cur = con.cursor()
+
+        cur.execute("DELETE FROM users WHERE user_id=?", (user_id,))
+        con.commit()
+
+
 def delete_account(message):
     global user_1
     chat_id = message.chat.id
+    user_id = message.from_user.id
+
+    if user_1.reg_status is None:
+        user_1.reg_status = check_reg_status(user_id)
 
     if not user_1.reg_status:
         bot.send_message(chat_id, text=consts.no_registration_error_text)
-    if user_1.reg_status:
-        with sq.connect('db/users.db') as con:
-            cur = con.cursor()
-
-            cur.execute("DELETE FROM users WHERE user_id=?", (user_1.user_id,))
-            con.commit()
+    elif user_1.reg_status:
+        remove_user(user_id)
         bot.send_message(chat_id, consts.acc_del_conf_text)
         user_1.delete_account()
+    else:
+        funcs.func_error(chat_id)
 
 
 # View account
