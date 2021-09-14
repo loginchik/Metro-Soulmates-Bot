@@ -28,3 +28,15 @@ class User(object):
         self.arr_code = None
         self.arr_name = None
         self.arr_way = None
+
+
+class Confirmation(object):
+    def __init__(self):
+        self.user_id = None
+        self.soul_id = None
+        self.file_name = None
+
+    def reset(self):
+        self.user_id = None
+        self.soul_id = None
+        self.file_name = None

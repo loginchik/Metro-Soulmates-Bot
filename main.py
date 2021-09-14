@@ -1,8 +1,7 @@
 import sqlite3 as sq
-import consts
-import funcs
 
-from functions_fold import about_funcs, account_funcs, help_funcs, soulmates_search_funcs
+import consts
+from functions_fold import about_funcs, account_funcs, help_funcs, soulmates_search_funcs, confirmation_funcs
 
 bot = consts.bot
 user_1 = consts.user
@@ -21,6 +20,17 @@ with sq.connect('db/users.db') as con:
         metro_arr TEXT
       )''')
     con.commit()
+
+with sq.connect('db/users.db') as con:
+    cur = con.cursor()
+
+    cur.execute('''CREATE TABLE IF NOT EXISTS confirms (
+        user_id INTEGER,
+        soul_id INTEGER,
+        date TEXT,
+        file TEXT,
+        authorized INTEGER DEFAULT 0
+        )''')
 
 
 def get_curr_user_1(user_id):
@@ -58,7 +68,7 @@ def listener(messages):
         if message.content_type == 'text':
             new_msg = str(message.text).lower()
 
-            if new_msg == '/help' or '/start':
+            if new_msg == '/help':
                 help_funcs.help_func(message)
             if new_msg == '/about':
                 about_funcs.about_func(message)
@@ -77,6 +87,10 @@ def listener(messages):
                     soulmates_search_funcs.main_find_souls(user_1, user_id, chat_id)
                 else:
                     bot.send_message(chat_id, text=consts.no_registration_error_text)
+            if new_msg == '/report':
+                pass
+            if new_msg == '/confirm':
+                confirmation_funcs.start_conf_process(message)
 
         if message.content_type == 'photo':
             bot.send_message(chat_id, 'Как жаль, что я не могу понять, что вы прислали')
