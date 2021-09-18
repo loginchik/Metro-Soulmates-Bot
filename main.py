@@ -132,7 +132,7 @@ def listener(messages):
             elif new_msg == '/edit_account':
                 get_curr_user_1(user_id)
                 if user_1.reg_status:
-                    error_funcs.no_func_error(message)
+                    account_funcs.ask_what_to_edit_step(message)
                 elif not user_1.reg_status:
                     error_funcs.no_registration_error(message)
 

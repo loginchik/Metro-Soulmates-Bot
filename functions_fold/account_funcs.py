@@ -250,3 +250,172 @@ def view_acc_func(message):
         bot.send_message(message.chat.id, text=text)
     except:
         error_funcs.other_error(message)
+
+
+# Edit account
+def change_name(message):
+    try:
+        user_id = message.from_user.id
+        new_name = str(message.text).lower()
+
+        with sq.connect('db/users.db') as con:
+            cur = con.cursor()
+            cur.execute('''UPDATE users SET first_name=? WHERE user_id=?''', (new_name, user_id))
+            con.commit()
+
+        view_acc_func(message)
+    except:
+        error_funcs.other_error(message)
+
+
+def change_mdep(message):
+    try:
+        new_dep_name = str(message.text).lower()
+        user_id = message.from_user.id
+
+        result = None
+
+        with sq.connect('db/metro.db') as con:
+            cur = con.cursor()
+            cur.execute('''SELECT count(*) FROM stations_coo WHERE name=?''', (new_dep_name,))
+            stats_num = cur.fetchone()[0]
+            if stats_num == 0:
+                error_funcs.no_station_found(message)
+            elif stats_num == 1:
+                cur.execute('SELECT code FROM stations_coo WHERE name=?', (new_dep_name,))
+                new_dep_code = cur.fetchone()[0]
+                result = True
+            elif stats_num > 1:
+                with open('metroways.png', 'rb') as img:
+                    way_num = bot.send_photo(message.chat.id, photo=img, caption=consts.way_ask_text)
+                bot.register_next_step_handler(way_num, change_dep_few_stations, new_dep_name, user_id, message)
+
+        if result:
+            with sq.connect('db/users.db') as con:
+                cur = con.cursor()
+                cur.execute('UPDATE users SET metro_dep=? WHERE user_id=?', (new_dep_code, user_id))
+                con.commit()
+            view_acc_func(message)
+    except:
+        error_funcs.other_error(message)
+
+
+def change_dep_few_stations(way_num, stat_name, user_id, message):
+    try:
+        way = int(way_num.text)
+        name = stat_name
+        result = None
+
+        with sq.connect('db/metro.db') as con:
+            cur = con.cursor()
+            cur.execute('SELECT code FROM stations_coo WHERE way=? AND name=?', (way, name))
+            new_dep_code = cur.fetchone()[0]
+            result = True
+
+        if result:
+            with sq.connect('db/users.db') as con:
+                cur = con.cursor()
+                cur.execute('UPDATE users SET metro_dep=? WHERE user_id=?', (new_dep_code, user_id))
+                con.commit()
+            view_acc_func(message)
+    except:
+        error_funcs.other_error(message)
+
+
+def change_marr(message):
+    try:
+        new_arr_name = str(message.text).lower()
+        user_id = message.from_user.id
+
+        result = None
+
+        with sq.connect('db/metro.db') as con:
+            cur = con.cursor()
+            cur.execute('''SELECT count(*) FROM stations_coo WHERE name=?''', (new_arr_name,))
+            stats_num = cur.fetchone()[0]
+            if stats_num == 0:
+                error_funcs.no_station_found(message)
+            elif stats_num == 1:
+                cur.execute('SELECT code FROM stations_coo WHERE name=?', (new_arr_name,))
+                new_arr_code = cur.fetchone()[0]
+                result = True
+            elif stats_num > 1:
+                with open('metroways.png', 'rb') as img:
+                    way_num = bot.send_photo(message.chat.id, photo=img, caption=consts.way_ask_text)
+                bot.register_next_step_handler(way_num, change_arr_few_stations, new_arr_name, user_id, message)
+
+        if result:
+            with sq.connect('db/users.db') as con:
+                cur = con.cursor()
+                cur.execute('UPDATE users SET metro_arr=? WHERE user_id=?', (new_arr_code, user_id))
+                con.commit()
+            view_acc_func(message)
+    except:
+        error_funcs.other_error(message)
+
+
+def change_arr_few_stations(way_num, stat_name, user_id, message):
+    try:
+        way = int(way_num.text)
+        name = stat_name
+        result = None
+
+        with sq.connect('db/metro.db') as con:
+            cur = con.cursor()
+            cur.execute('SELECT code FROM stations_coo WHERE way=? AND name=?', (way, name))
+            new_arr_code = cur.fetchone()[0]
+            result = True
+
+        if result:
+            with sq.connect('db/users.db') as con:
+                cur = con.cursor()
+                cur.execute('UPDATE users SET metro_dep=? WHERE user_id=?', (new_arr_code, user_id))
+                con.commit()
+            view_acc_func(message)
+    except:
+        error_funcs.other_error(message)
+
+
+def ask_what_to_edit_step(message):
+    chat_id = message.chat.id
+    try:
+        msg = bot.send_message(chat_id, 'Что вы хотите изменить? '
+                                        '\n\nВозможные варианты ответа (без кавычек): "имя", "никнейм", "станция '
+                                        'отправления", "станция прибытия"')
+        bot.register_next_step_handler(msg, forward_to_func_step)
+    except:
+        error_funcs.other_error(message)
+
+
+def forward_to_func_step(message):
+    chat_id = message.chat.id
+
+    try:
+        if message.content_type == 'text':
+            msg = str(message.text).lower()
+            if msg == 'имя':
+                new_name = bot.send_message(chat_id, text='Пришлите новое имя, которое нужно установить')
+                bot.register_next_step_handler(new_name, change_name)
+
+            elif msg == 'никнейм':
+                bot.send_message(chat_id, text='Сейчас обновлю ваш ник из данных телеграма')
+                new_nick = message.from_user.username
+                user_id = message.from_user.id
+                with sq.connect('db/users.db') as con:
+                    cur = con.cursor()
+                    cur.execute('''UPDATE users SET nickname=? WHERE user_id=?''', (new_nick, user_id))
+                    con.commit()
+                view_acc_func(message)
+
+            elif msg == 'станция отправления':
+                new_dep = bot.send_message(chat_id, 'Введите название новой станции отправления')
+                bot.register_next_step_handler(new_dep, change_mdep)
+
+            elif msg == 'станция прибытия':
+                new_arr = bot.send_message(chat_id, 'Введите название новой станции прибытия')
+                bot.register_next_step_handler(new_arr, change_marr)
+
+        else:
+            error_funcs.not_text_error(message)
+    except:
+        error_funcs.other_error(message)
