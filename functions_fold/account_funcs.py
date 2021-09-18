@@ -1,7 +1,7 @@
 import consts
 import sqlite3 as sq
 import classes
-import funcs
+import functions_fold.error_funcs
 
 user_1 = consts.user
 bot = consts.bot
@@ -256,7 +256,7 @@ def delete_account(message):
         bot.send_message(chat_id, consts.acc_del_conf_text)
         user_1.delete_account()
     else:
-        funcs.func_error(chat_id)
+        functions_fold.error_funcs.other_error(message)
 
 
 # View account

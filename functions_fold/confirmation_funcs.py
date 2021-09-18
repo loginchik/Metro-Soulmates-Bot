@@ -2,9 +2,11 @@ import shutil
 import sqlite3 as sq
 from datetime import datetime
 
+import functions_fold.error_funcs
+from functions_fold import error_funcs
+
 import classes
 import consts
-import funcs
 
 bot = consts.bot
 
@@ -89,9 +91,9 @@ def get_soul_id(message):
                 msg = bot.send_message(chat_id, consts.ask_for_conf_text)
                 bot.register_next_step_handler(msg, get_conf)
             else:
-                funcs.func_error(message.chat.id)
+                functions_fold.error_funcs.other_error(message)
     else:
-        funcs.func_error(message.chat.id)
+        functions_fold.error_funcs.other_error(message)
 
 
 def get_conf(message):
@@ -127,7 +129,7 @@ def get_conf(message):
                 bot.send_message(chat_id, 'это текст, а я прошу фото или видео или аудио')
 
         except:
-            funcs.func_error(chat_id)
+            functions_fold.error_funcs.other_error(message)
 
 
 # Подтверждение встречи от другого пользователя, который не отправлял первоначальное подтверждение
@@ -152,25 +154,27 @@ def get_approval(message, user_id, soul_id, file_name):
     chat_id = message.chat.id
 
     approval = str(message.text).lower()
+    if message.content_type == 'text':
+        if approval == 'да':
+            with sq.connect('db/users.db') as con:
+                cur = con.cursor()
 
-    if approval == 'да':
-        with sq.connect('db/users.db') as con:
-            cur = con.cursor()
+                cur.execute('''UPDATE confirms SET authorized=1 WHERE user_id=? AND soul_id=? AND file=?''',
+                            (user_id, soul_id, file_name))
+                con.commit()
+            send_unapproved_num(message)
 
-            cur.execute('''UPDATE confirms SET authorized=1 WHERE user_id=? AND soul_id=? AND file=?''',
-                        (user_id, soul_id, file_name))
-            con.commit()
-        send_unapproved_num(message)
+        elif approval == 'нет':
+            with sq.connect('db/users.db') as con:
+                cur = con.cursor()
 
-    elif approval == 'нет':
-        with sq.connect('db/users.db') as con:
-            cur = con.cursor()
-
-            cur.execute('''UPDATE confirms SET authorized=-1 WHERE user_id=? AND soul_id=? AND file=?''',
-                        (user_id, soul_id, file_name))
-        send_unapproved_num(message)
+                cur.execute('''UPDATE confirms SET authorized=-1 WHERE user_id=? AND soul_id=? AND file=?''',
+                            (user_id, soul_id, file_name))
+            send_unapproved_num(message)
+        else:
+            functions_fold.error_funcs.other_error(message)
     else:
-        funcs.func_error(chat_id)
+        error_funcs.not_text_error(message)
 
 
 def get_unapproved_num(message):
@@ -202,7 +206,7 @@ def send_unapproved_num(message):
                                                                         'подтвердить, воспользуйтесь функцией '
                                                                         '/trust_me')
     else:
-        funcs.func_error(message)
+        functions_fold.error_funcs.other_error(message)
 
 
 def approve_conf(message):
