@@ -30,3 +30,8 @@ def no_func_error(message):
     chat_id = message.chat.id
     text = consts.no_func_text
     bot.send_message(chat_id, text)
+
+
+def ununderstandable_text(message):
+    text = consts.ununderstandable_text_text
+    bot.reply_to(message, text)

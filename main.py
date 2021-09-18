@@ -134,6 +134,10 @@ def listener(messages):
                 elif not user_1.reg_status:
                     error_funcs.no_registration_error(message)
 
+            # Обработка непонятного текста
+            else:
+                error_funcs.ununderstandable_text(message)
+
         # Обработка сообщений, которые содержат не текст
         elif message.content_type != 'text':
             bot.send_message(chat_id, 'Я не умею пока обрабатывать никакие входящие сообщения, кроме текстовых, '
