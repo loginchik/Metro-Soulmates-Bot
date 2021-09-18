@@ -17,7 +17,8 @@ with sq.connect('db/users.db') as con:
         first_name TEXT, 
         nickname TEXT, 
         metro_dep TEXT, 
-        metro_arr TEXT
+        metro_arr TEXT,
+        stars INTEGER DEFAULT 0
       )''')
     con.commit()
 

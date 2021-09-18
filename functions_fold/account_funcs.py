@@ -23,14 +23,12 @@ def prof_info(user_id):
         cur = con.cursor()
 
         cur.execute("SELECT * FROM users WHERE user_id=?", (user.user_id,))
-        user_info = cur.fetchall()
-
-        # Unpack dict
-        for key in user_info:
-            user.name = key[2]
-            user.nickname = key[3]
-            user.dep_code = key[4]
-            user.arr_code = key[5]
+        user_info = cur.fetchone()
+        user.name = user_info[2]
+        user.nickname = user_info[3]
+        user.dep_code = user_info[4]
+        user.arr_code = user_info[5]
+        user.stars = user_info[6]
 
     with sq.connect('db/metro.db') as con:
         cur = con.cursor()
@@ -44,10 +42,13 @@ def prof_info(user_id):
         for name in cur.fetchall():
             user.arr_way = name[0]
             user.arr_name = name[1]
-    text = "Имя — " + str(user.name).title() + '\n' + "Ник в телеграме — @" + str(user.nickname) + \
+    text = "Имя — " + str(user.name).title() + \
+           '\n' + "Ник в телеграме — @" + str(user.nickname) + \
            '\n\n' + "Метро отправленя: \n" + str(user.dep_name).title() + " (" + str(user.dep_way) + \
-           " линия метро)\n" + '\n' + "Метро прибытия: \n" + str(user.arr_name).title() + \
-           " (" + str(user.arr_way) + " линия метро)"
+           " линия метро)" + \
+           '\n\n' + "Метро прибытия: \n" + str(user.arr_name).title() + \
+           " (" + str(user.arr_way) + " линия метро)" + \
+           '\n\n' + 'Звезд: ' + str(user.stars)
     return text
 
 

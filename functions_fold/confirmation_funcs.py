@@ -47,6 +47,7 @@ def write_conf(user_id, soul_id, date, file_name):
         cur = con.cursor()
         cur.execute('''INSERT INTO confirms (user_id, soul_id, date, file) VALUES (?, ?, ?, ?)''',
                     (user_id, soul_id, date, file_name))
+        con.commit()
 
 
 # Получение подтверждения от первого пользователя
@@ -151,8 +152,6 @@ def datetime_list(meet_date):
 
 
 def get_approval(message, user_id, soul_id, file_name):
-    chat_id = message.chat.id
-
     approval = str(message.text).lower()
     if message.content_type == 'text':
         if approval == 'да':
@@ -161,6 +160,8 @@ def get_approval(message, user_id, soul_id, file_name):
 
                 cur.execute('''UPDATE confirms SET authorized=1 WHERE user_id=? AND soul_id=? AND file=?''',
                             (user_id, soul_id, file_name))
+                con.commit()
+                cur.execute('''UPDATE users SET stars=stars+1 WHERE user_id=? OR user_id=?''', (user_id, soul_id))
                 con.commit()
             send_unapproved_num(message)
 

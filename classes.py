@@ -5,6 +5,7 @@ class User(object):
         self.nickname = None
 
         self.reg_status = None
+        self.stars = None
 
         self.dep_code = None
         self.dep_name = None
@@ -20,6 +21,7 @@ class User(object):
         self.nickname = None
 
         self.reg_status = False
+        self.stars = None
 
         self.dep_code = None
         self.dep_name = None

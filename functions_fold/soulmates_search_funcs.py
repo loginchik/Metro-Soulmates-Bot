@@ -109,7 +109,8 @@ def find_current_souls(souls_all_package):
 def get_soul_info(soul_id):
     with sq.connect('db/users.db') as con:
         cur = con.cursor()
-        cur.execute('''SELECT first_name, nickname, metro_dep, metro_arr FROM users WHERE user_id=?''', (soul_id,))
+        cur.execute('''SELECT first_name, nickname, metro_dep, metro_arr, stars FROM users WHERE user_id=?''',
+                    (soul_id,))
         info = cur.fetchall()
 
         soul = classes.User(soul_id)
@@ -118,6 +119,7 @@ def get_soul_info(soul_id):
             soul.nickname = i[1]
             soul.dep_code = i[2]
             soul.arr_code = i[3]
+            soul.stars = i[4]
 
     with sq.connect('db/metro.db') as con:
         cur = con.cursor()
@@ -142,7 +144,8 @@ def send_soul_info(soul_info_class, chat_id):
     text = 'Имя: ' + str(soul.name).title() + \
            '\n\nНик: @' + str(soul.nickname) + \
            '\n\nСтанция отправления: ' + str(soul.dep_name).title() + \
-           '\n\nСтанция прибытия: ' + str(soul.arr_name).title()
+           '\n\nСтанция прибытия: ' + str(soul.arr_name).title() + \
+           '\n\nВстреч: ' + str(soul.stars)
     bot.send_message(chat_id, text=text)
 
 
