@@ -77,7 +77,7 @@ def listener(messages):
                 error_funcs.no_func_error(message)
 
             # Функции, доступные только без регистрации
-            elif new_msg == '/register':
+            elif new_msg in ['/register', 'регистрация', 'зарегистрироваться']:
                 get_curr_user_1(user_id)
                 if not user_1.reg_status:
                     account_funcs.get_basic_step(message)
@@ -85,21 +85,22 @@ def listener(messages):
                     error_funcs.user_exists_error(message)
 
             # Функции, доступные только с регистрацией
-            elif new_msg == '/delete_acc':
+            elif new_msg in ['delete_acc', 'удалить аккаунт']:
                 get_curr_user_1(user_id)
                 if user_1.reg_status:
                     account_funcs.delete_account(message)
                 elif not user_1.reg_status:
                     error_funcs.no_registration_error(message)
 
-            elif new_msg == '/view_acc':
+            elif new_msg in ['/view_acc', 'посмотреть профиль']:
                 get_curr_user_1(user_id)
                 if user_1.reg_status:
                     account_funcs.view_acc_func(message)
                 elif not user_1.reg_status:
                     error_funcs.no_registration_error(message)
 
-            elif new_msg == '/souls_search':
+            elif new_msg in ['/souls_search', 'поиск попутчиков', 'искать попутчиков', 'найти попутчиков',
+                             'найти соула', 'поиск соула', 'искать соула']:
                 get_curr_user_1(user_id)
                 if user_1.reg_status:
                     soulmates_search_funcs.main_find_souls(user_1, user_id, message)
@@ -146,4 +147,4 @@ def listener(messages):
 
 
 bot.set_update_listener(listener)
-bot.polling(none_stop=True)
+bot.polling(none_stop=True, timeout=None)

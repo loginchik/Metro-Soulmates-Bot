@@ -164,6 +164,7 @@ def main_find_souls(user, user_id, message):
 
         if len(all_souls_matching) == 0:
             bot.send_message(chat_id, text=consts.no_souls_found_text)
+            bot.send_sticker(chat_id, 'CAACAgIAAxkBAAEC7aBhRl4U7rzGDaMoAWDhP1f3AutOOgACaBEAAkAwiUtLxBKN7HrbtiAE')
         elif len(all_souls_matching) > 0:
             current_souls = find_current_souls(souls_all_package=all_souls_matching)
             for soul in current_souls:
