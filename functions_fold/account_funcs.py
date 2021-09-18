@@ -1,5 +1,5 @@
 import sqlite3 as sq
-
+from functions_fold import error_funcs
 import classes
 import consts
 
@@ -54,157 +54,170 @@ def prof_info(user_id):
 
 # Registration
 def get_basic_step(message):
-    global user_1
-    user_1.user_id = int(message.from_user.id)
-    user_1.name = str(message.from_user.first_name).lower()
-    user_1.nickname = str(message.from_user.username).lower()
+    try:
+        global user_1
+        user_1.user_id = int(message.from_user.id)
+        user_1.name = str(message.from_user.first_name).lower()
+        user_1.nickname = str(message.from_user.username).lower()
 
-    # follow next step
-    send = bot.send_message(message.chat.id, text=consts.mdep_ask_text)
-    bot.register_next_step_handler(send, get_dep_step)
+        # follow next step
+        send = bot.send_message(message.chat.id, text=consts.mdep_ask_text)
+        bot.register_next_step_handler(send, get_dep_step)
+    except:
+        error_funcs.other_error(message)
 
 
 def get_dep_step(message):
-    global user_1
+    try:
+        global user_1
 
-    # saving metro dep
-    user_1.dep_name = str(message.text).lower()
+        # saving metro dep
+        user_1.dep_name = str(message.text).lower()
 
-    with sq.connect('db/metro.db') as con:
-        cur = con.cursor()
-        cur.execute('''SELECT count(code) as stats_here FROM stations_coo WHERE name=?''', (user_1.dep_name,))
-        stats_here = cur.fetchall()
-        for stats_num in stats_here:
-            stats_num_cur = stats_num[0]
+        with sq.connect('db/metro.db') as con:
+            cur = con.cursor()
+            cur.execute('''SELECT count(code) as stats_here FROM stations_coo WHERE name=?''', (user_1.dep_name,))
+            stats_here = cur.fetchall()
+            for stats_num in stats_here:
+                stats_num_cur = stats_num[0]
 
-        if stats_num_cur == 0:
-            bot.send_message(message.chat.id, text=consts.no_station_error_text)
-        if stats_num_cur == 1:
-            cur.execute('''SELECT code FROM stations_coo WHERE name=?''', (user_1.dep_name,))
-            code_pack = cur.fetchall()
-            for code in code_pack:
-                code_dep = str(''.join(code)).lower()
+            if stats_num_cur == 0:
+                error_funcs.no_station_found(message)
+            if stats_num_cur == 1:
+                cur.execute('''SELECT code FROM stations_coo WHERE name=?''', (user_1.dep_name,))
+                code_pack = cur.fetchall()
+                for code in code_pack:
+                    code_dep = str(''.join(code)).lower()
+                user_1.dep_code = code_dep
+
+                # follow next step
+                send = bot.send_message(message.chat.id, text=consts.marr_ask_text)
+                bot.register_next_step_handler(send, get_arr)
+
+        if stats_num_cur > 1:
+            with open('metroways.png', 'rb') as img:
+                way_num = bot.send_photo(message.chat.id, photo=img, caption=consts.way_ask_text)
+            bot.register_next_step_handler(way_num, few_ways_st_dep)
+    except:
+        error_funcs.other_error(message)
+
+
+def few_ways_st_dep(message):
+    try:
+        global user_1
+        way = int(message.text)
+
+        with sq.connect('db/metro.db') as con:
+            cur = con.cursor()
+
+            cur.execute('''SELECT count(*) FROM stations_coo WHERE way=? AND name=?''', (way, user_1.dep_name))
+            got = cur.fetchone()
+            for i in got:
+                print(i)
+                if i > 0:
+                    exists = True
+                else:
+                    exists = False
+
+        if exists:
+            user_1.dep_way = way
+
+            with sq.connect('db/metro.db') as con:
+                cur = con.cursor()
+
+                cur.execute("SELECT code FROM stations_coo WHERE name=? AND way=?", (user_1.dep_name, user_1.dep_way))
+                code_pack = cur.fetchall()
+                for code in code_pack:
+                    code_dep = str(''.join(code)).lower()
             user_1.dep_code = code_dep
 
             # follow next step
             send = bot.send_message(message.chat.id, text=consts.marr_ask_text)
             bot.register_next_step_handler(send, get_arr)
 
-    if stats_num_cur > 1:
-        with open('metroways.png', 'rb') as img:
-            way_num = bot.send_photo(message.chat.id, photo=img, caption=consts.way_ask_text)
-        bot.register_next_step_handler(way_num, few_ways_st_dep)
-
-
-def few_ways_st_dep(message):
-    global user_1
-
-    way = int(message.text)
-
-    with sq.connect('db/metro.db') as con:
-        cur = con.cursor()
-
-        cur.execute('''SELECT count(*) FROM stations_coo WHERE way=? AND name=?''', (way, user_1.dep_name))
-        got = cur.fetchone()
-        for i in got:
-            print(i)
-            if i > 0:
-                exists = True
-            else:
-                exists = False
-
-    if exists:
-        user_1.dep_way = way
-
-        with sq.connect('db/metro.db') as con:
-            cur = con.cursor()
-
-            cur.execute("SELECT code FROM stations_coo WHERE name=? AND way=?", (user_1.dep_name, user_1.dep_way))
-            code_pack = cur.fetchall()
-            for code in code_pack:
-                code_dep = str(''.join(code)).lower()
-        user_1.dep_code = code_dep
-
-        # follow next step
-        send = bot.send_message(message.chat.id, text=consts.marr_ask_text)
-        bot.register_next_step_handler(send, get_arr)
-
-    if not exists:
-        bot.send_message(message.chat.id, text=consts.few_ways_no_station_text)
+        if not exists:
+            error_funcs.no_station_on_way_found(message)
+    except:
+        error_funcs.other_error(message)
 
 
 def get_arr(message):
-    global user_1
-
-    # save metro arr
-    user_1.arr_name = str(message.text).lower()
-
-    with sq.connect('db/metro.db') as con:
-        cur = con.cursor()
-
-        cur.execute('''SELECT count(code) as stats_here FROM stations_coo WHERE name=?''', (user_1.arr_name,))
-        stats_here = cur.fetchall()
-        for stats_num in stats_here:
-            stats_num_cur = stats_num[0]
-
-    if stats_num_cur == 0:
-        bot.send_message(message.chat.id, text=consts.no_station_error_text)
-    if stats_num_cur == 1:
-        cur.execute("SELECT code FROM stations_coo WHERE name=?", (user_1.arr_name,))
-        code_pack = cur.fetchall()
-        for code in code_pack:
-            code_arr = str(''.join(code)).lower()
-            user_1.arr_code = code_arr
-        write_new_user(user_id=user_1.user_id,
-                       first_name=user_1.name,
-                       nickname=user_1.nickname,
-                       metro_dep=user_1.dep_code,
-                       metro_arr=user_1.arr_code
-                       )
-    if stats_num_cur > 1:
-        with open('metroways.png', 'rb') as img:
-            way_num = bot.send_photo(message.chat.id, photo=img, caption=consts.way_ask_text)
-        bot.register_next_step_handler(way_num, few_ways_st_arr)
-
-
-def few_ways_st_arr(message):
-    global user_1
-
-    way = int(message.text)
-
-    with sq.connect('db/metro.db') as con:
-        cur = con.cursor()
-
-        cur.execute('''SELECT count(*) FROM stations_coo WHERE way=? AND name=?''', (way, user_1.arr_name))
-        got = cur.fetchone()
-        for i in got:
-            if i > 0:
-                exists = True
-            else:
-                exists = False
-
-    if exists:
-        user_1.arr_way = way
+    try:
+        global user_1
+        # save metro arr
+        user_1.arr_name = str(message.text).lower()
 
         with sq.connect('db/metro.db') as con:
             cur = con.cursor()
 
-            cur.execute('''SELECT code FROM stations_coo WHERE name=? AND way=?''', (user_1.arr_name, user_1.arr_way))
+            cur.execute('''SELECT count(code) as stats_here FROM stations_coo WHERE name=?''', (user_1.arr_name,))
+            stats_here = cur.fetchall()
+            for stats_num in stats_here:
+                stats_num_cur = stats_num[0]
+
+        if stats_num_cur == 0:
+            error_funcs.no_station_found(message)
+        if stats_num_cur == 1:
+            cur.execute("SELECT code FROM stations_coo WHERE name=?", (user_1.arr_name,))
             code_pack = cur.fetchall()
             for code in code_pack:
                 code_arr = str(''.join(code)).lower()
-        user_1.arr_code = code_arr
-        write_new_user(user_id=user_1.user_id,
-                       first_name=user_1.name,
-                       nickname=user_1.nickname,
-                       metro_dep=user_1.dep_code,
-                       metro_arr=user_1.arr_code
-                       )
-        user_1.reg_status = True
-        bot.send_message(message.chat.id, text=consts.acc_create_conf_text)
+                user_1.arr_code = code_arr
+            write_new_user(user_id=user_1.user_id,
+                           first_name=user_1.name,
+                           nickname=user_1.nickname,
+                           metro_dep=user_1.dep_code,
+                           metro_arr=user_1.arr_code
+                           )
+        if stats_num_cur > 1:
+            with open('metroways.png', 'rb') as img:
+                way_num = bot.send_photo(message.chat.id, photo=img, caption=consts.way_ask_text)
+            bot.register_next_step_handler(way_num, few_ways_st_arr)
+    except:
+        error_funcs.other_error(message)
 
-    if not exists:
-        bot.send_message(message.chat.id, text=consts.few_ways_no_station_text)
+
+def few_ways_st_arr(message):
+    try:
+        global user_1
+        way = int(message.text)
+
+        with sq.connect('db/metro.db') as con:
+            cur = con.cursor()
+
+            cur.execute('''SELECT count(*) FROM stations_coo WHERE way=? AND name=?''', (way, user_1.arr_name))
+            got = cur.fetchone()
+            for i in got:
+                if i > 0:
+                    exists = True
+                else:
+                    exists = False
+
+        if exists:
+            user_1.arr_way = way
+
+            with sq.connect('db/metro.db') as con:
+                cur = con.cursor()
+
+                cur.execute('''SELECT code FROM stations_coo WHERE name=? AND way=?''',
+                            (user_1.arr_name, user_1.arr_way))
+                code_pack = cur.fetchall()
+                for code in code_pack:
+                    code_arr = str(''.join(code)).lower()
+            user_1.arr_code = code_arr
+            write_new_user(user_id=user_1.user_id,
+                           first_name=user_1.name,
+                           nickname=user_1.nickname,
+                           metro_dep=user_1.dep_code,
+                           metro_arr=user_1.arr_code
+                           )
+            user_1.reg_status = True
+            bot.send_message(message.chat.id, text=consts.acc_create_conf_text)
+
+        if not exists:
+            error_funcs.no_station_on_way_found(message)
+    except:
+        error_funcs.other_error(message)
 
 
 # Delete account
@@ -217,18 +230,23 @@ def remove_user(user_id):
 
 
 def delete_account(message):
-    global user_1
-    chat_id = message.chat.id
-    user_id = message.from_user.id
+    try:
+        global user_1
+        chat_id = message.chat.id
+        user_id = message.from_user.id
 
-    remove_user(user_id)
-    bot.send_message(chat_id, text=consts.acc_del_conf_text)
-    user_1.delete_account()
+        remove_user(user_id)
+        bot.send_message(chat_id, text=consts.acc_del_conf_text)
+        user_1.delete_account()
+    except:
+        error_funcs.other_error(message)
 
 
 # View account
 def view_acc_func(message):
-    global user_1
-
-    text = prof_info(message.from_user.id)
-    bot.send_message(message.chat.id, text=text)
+    try:
+        global user_1
+        text = prof_info(message.from_user.id)
+        bot.send_message(message.chat.id, text=text)
+    except:
+        error_funcs.other_error(message)

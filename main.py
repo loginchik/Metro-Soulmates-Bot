@@ -65,7 +65,7 @@ def listener(messages):
             new_msg = str(message.text).lower()
 
             # Общедоступные функции
-            if new_msg == '/help':
+            if new_msg in ['/help', 'помощь']:
                 help_funcs.help_func(message)
             elif new_msg == '/about':
                 about_funcs.about_func(message)
@@ -102,7 +102,7 @@ def listener(messages):
             elif new_msg == '/souls_search':
                 get_curr_user_1(user_id)
                 if user_1.reg_status:
-                    soulmates_search_funcs.main_find_souls(user_1, user_id, chat_id)
+                    soulmates_search_funcs.main_find_souls(user_1, user_id, message)
                 else:
                     error_funcs.no_registration_error(message)
 

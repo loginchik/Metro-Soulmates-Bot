@@ -192,50 +192,57 @@ def get_unapproved_num(message):
 
 def send_unapproved_num(message):
     chat_id = message.chat.id
-    unapproved_num = get_unapproved_num(message)
-    if unapproved_num == 0:
-        bot.send_message(chat_id, text=consts.no_unapproved_text)
-    elif unapproved_num == 1:
-        bot.send_message(chat_id, text='У вас 1 неподтвержденная встреча. Чтобы ее подтвердить, '
-                                       'воспользуйтесь функцией /trust_me')
-    elif unapproved_num in range(2, 4):
-        bot.send_message(chat_id, text='У вас ' + str(unapproved_num) + ' неподтвержденных встречи. Чтобы их '
-                                                                        'подтвердить, воспользуйтесь функцией '
-                                                                        '/trust_me')
-    elif unapproved_num > 4:
-        bot.send_message(chat_id, text='У вас ' + str(unapproved_num) + ' неподтвержденных встреч. Чтобы их '
-                                                                        'подтвердить, воспользуйтесь функцией '
-                                                                        '/trust_me')
-    else:
-        functions_fold.error_funcs.other_error(message)
+    try:
+        unapproved_num = get_unapproved_num(message)
+        if unapproved_num == 0:
+            bot.send_message(chat_id, text=consts.no_unapproved_text)
+        elif unapproved_num == 1:
+            bot.send_message(chat_id, text='У вас 1 неподтвержденная встреча. Чтобы ее подтвердить, '
+                                           'воспользуйтесь функцией /trust_me')
+        elif unapproved_num in range(2, 4):
+            bot.send_message(chat_id, text='У вас ' + str(unapproved_num) + ' неподтвержденных встречи. Чтобы их '
+                                                                            'подтвердить, воспользуйтесь функцией '
+                                                                            '/trust_me')
+        elif unapproved_num > 4:
+            bot.send_message(chat_id, text='У вас ' + str(unapproved_num) + ' неподтвержденных встреч. Чтобы их '
+                                                                            'подтвердить, воспользуйтесь функцией '
+                                                                            '/trust_me')
+        else:
+            functions_fold.error_funcs.other_error(message)
+    except:
+        error_funcs.other_error(message)
 
 
 def approve_conf(message):
-    unapproved_num = get_unapproved_num(message)
     soul_id = message.from_user.id
     chat_id = message.chat.id
 
-    if unapproved_num > 0:
-        with sq.connect('db/users.db') as con:
-            cur = con.cursor()
+    try:
+        unapproved_num = get_unapproved_num(message)
 
-            cur.execute('''SELECT * FROM confirms WHERE authorized=0 AND soul_id=?''', (soul_id,))
-            meet_info = cur.fetchone()
-            user_id = meet_info[0]
-            soul_id = meet_info[1]
-            date = meet_info[2]
-            file_name = meet_info[3]
+        if unapproved_num > 0:
+            with sq.connect('db/users.db') as con:
+                cur = con.cursor()
 
-            cur.execute('''SELECT first_name, nickname FROM users WHERE user_id=?''', (user_id,))
-            soul_name_nick_pack = cur.fetchone()
-        user_name = soul_name_nick_pack[0]
-        user_nick = soul_name_nick_pack[1]
+                cur.execute('''SELECT * FROM confirms WHERE authorized=0 AND soul_id=?''', (soul_id,))
+                meet_info = cur.fetchone()
+                user_id = meet_info[0]
+                soul_id = meet_info[1]
+                date = meet_info[2]
+                file_name = meet_info[3]
 
-        date_list = datetime_list(date)
+                cur.execute('''SELECT first_name, nickname FROM users WHERE user_id=?''', (user_id,))
+                soul_name_nick_pack = cur.fetchone()
+            user_name = soul_name_nick_pack[0]
+            user_nick = soul_name_nick_pack[1]
 
-        text = date_list[3] + '.' + date_list[2] + ' вы встречались с ' + str(user_name).title() + \
-               ' (@' + str(user_nick).lower() + '). Если это так, пришлите "да" в ответ,  если это не так, ' \
-                                                'то пришлите в ответ "нет".'
+            date_list = datetime_list(date)
 
-        approval = bot.send_message(chat_id, text=text)
-        bot.register_next_step_handler(approval, get_approval, user_id, soul_id, file_name)
+            text = date_list[3] + '.' + date_list[2] + ' вы встречались с ' + str(user_name).title() + \
+                   ' (@' + str(user_nick).lower() + '). Если это так, пришлите "да" в ответ,  если это не так, ' \
+                                                    'то пришлите в ответ "нет".'
+
+            approval = bot.send_message(chat_id, text=text)
+            bot.register_next_step_handler(approval, get_approval, user_id, soul_id, file_name)
+    except:
+        error_funcs.other_error(message)

@@ -2,6 +2,7 @@ import consts
 import classes
 import sqlite3 as sq
 import random
+from functions_fold import error_funcs
 
 user_1 = consts.user
 bot = consts.bot
@@ -149,20 +150,25 @@ def send_soul_info(soul_info_class, chat_id):
     bot.send_message(chat_id, text=text)
 
 
-def main_find_souls(user, user_id, chat_id):
-    dep_code = user.dep_code
-    arr_code = user.arr_code
+def main_find_souls(user, user_id, message):
+    chat_id = message.chat.id
 
-    dep_stat_pack = find_dep_stats(dep_station_code=dep_code)
-    souls_dep = find_dep_souls(stations_pack=dep_stat_pack, user_id=user_id)
-    souls_arr = find_arr_souls(arr_station_code=arr_code, user_id=user_id)
-    all_souls_matching = find_matching_souls(souls_arr=souls_arr, souls_dep=souls_dep)
+    try:
+        dep_code = user.dep_code
+        arr_code = user.arr_code
 
-    if len(all_souls_matching) == 0:
-        bot.send_message(chat_id, text=consts.no_souls_found_text)
-    elif len(all_souls_matching) > 0:
-        current_souls = find_current_souls(souls_all_package=all_souls_matching)
-        for soul in current_souls:
-            soul_info = get_soul_info(soul)
-            print(soul_info.name, soul_info.nickname, soul_info.dep_code, soul_info.arr_code)
-            send_soul_info(soul_info, chat_id)
+        dep_stat_pack = find_dep_stats(dep_station_code=dep_code)
+        souls_dep = find_dep_souls(stations_pack=dep_stat_pack, user_id=user_id)
+        souls_arr = find_arr_souls(arr_station_code=arr_code, user_id=user_id)
+        all_souls_matching = find_matching_souls(souls_arr=souls_arr, souls_dep=souls_dep)
+
+        if len(all_souls_matching) == 0:
+            bot.send_message(chat_id, text=consts.no_souls_found_text)
+        elif len(all_souls_matching) > 0:
+            current_souls = find_current_souls(souls_all_package=all_souls_matching)
+            for soul in current_souls:
+                soul_info = get_soul_info(soul)
+                print(soul_info.name, soul_info.nickname, soul_info.dep_code, soul_info.arr_code)
+                send_soul_info(soul_info, chat_id)
+    except:
+        error_funcs.other_error(message)

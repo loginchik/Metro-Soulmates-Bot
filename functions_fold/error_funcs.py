@@ -35,3 +35,13 @@ def no_func_error(message):
 def ununderstandable_text(message):
     text = consts.ununderstandable_text_text
     bot.reply_to(message, text)
+
+
+def no_station_found(message):
+    text = consts.no_station_error_text
+    bot.reply_to(message, text)
+
+
+def no_station_on_way_found(message):
+    text = consts.few_ways_no_station_text
+    bot.reply_to(message, text)
