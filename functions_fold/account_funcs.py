@@ -1,6 +1,7 @@
-import consts
 import sqlite3 as sq
+
 import classes
+import consts
 import functions_fold.error_funcs
 
 user_1 = consts.user
@@ -51,47 +52,19 @@ def prof_info(user_id):
     return text
 
 
-def check_reg_status(user_id):
-    with sq.connect('db/users.db') as con:
-        cur = con.cursor()
-
-        cur.execute("SELECT count(user_id) FROM users WHERE user_id=?", (user_id,))
-        users_exist = cur.fetchall()
-
-        # Get number of existing users with this user_id
-        k = users_exist[0]
-        m = ''.join(str(x) for x in k)
-        m = int(m)
-        if m > 0:
-            reg_status = True
-        if m == 0:
-            reg_status = False
-
-    return reg_status
-
-
 # Registration
-def checking_registration(message):
+def get_basic_step(message):
     global user_1
-    chat_id = message.chat.id
-    user_id = message.from_user.id
+    user_1.user_id = int(message.from_user.id)
+    user_1.name = str(message.from_user.first_name).lower()
+    user_1.nickname = str(message.from_user.username).lower()
 
-    user_1.reg_status = check_reg_status(user_id)
-
-    if user_1.reg_status:
-        bot.send_message(chat_id, text=consts.acc_exists_text)
-        prof_info(user_1.user_id)
-    else:
-        user_1.user_id = int(message.from_user.id)
-        user_1.name = str(message.from_user.first_name).lower()
-        user_1.nickname = str(message.from_user.username).lower()
-
-        # follow next step
-        send = bot.send_message(message.chat.id, text=consts.mdep_ask_text)
-        bot.register_next_step_handler(send, get_dep)
+    # follow next step
+    send = bot.send_message(message.chat.id, text=consts.mdep_ask_text)
+    bot.register_next_step_handler(send, get_dep_step)
 
 
-def get_dep(message):
+def get_dep_step(message):
     global user_1
 
     # saving metro dep
@@ -246,25 +219,16 @@ def delete_account(message):
     chat_id = message.chat.id
     user_id = message.from_user.id
 
-    if user_1.reg_status is None:
-        user_1.reg_status = check_reg_status(user_id)
+    remove_user(user_id)
+    bot.send_message(chat_id, consts.acc_del_conf_text)
+    user_1.delete_account()
 
-    if not user_1.reg_status:
-        bot.send_message(chat_id, text=consts.no_registration_error_text)
-    elif user_1.reg_status:
-        remove_user(user_id)
-        bot.send_message(chat_id, consts.acc_del_conf_text)
-        user_1.delete_account()
-    else:
-        functions_fold.error_funcs.other_error(message)
+    functions_fold.error_funcs.other_error(message)
 
 
 # View account
 def view_acc_func(message):
     global user_1
 
-    if user_1.reg_status:
-        text = prof_info(message.from_user.id)
-        bot.send_message(message.chat.id, text=text)
-    if not user_1.reg_status:
-        bot.send_message(message.chat.id, text=consts.no_registration_error_text)
+    text = prof_info(message.from_user.id)
+    bot.send_message(message.chat.id, text=text)

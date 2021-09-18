@@ -1,12 +1,12 @@
 import sqlite3 as sq
 
 import consts
-from functions_fold import about_funcs, account_funcs, help_funcs, soulmates_search_funcs, confirmation_funcs
+from functions_fold import about_funcs, account_funcs, help_funcs, soulmates_search_funcs, \
+    confirmation_funcs, error_funcs
 
 bot = consts.bot
 user_1 = consts.user
 
-not_working_commands = consts.not_working_commands
 
 # Creating a users table if not exists
 with sq.connect('db/users.db') as con:
@@ -41,8 +41,6 @@ def get_curr_user_1(user_id):
 
         cur.execute('''SELECT user_id FROM users WHERE user_id=?''', (user_id,))
         pack = cur.fetchall()
-        if len(pack) == 0:
-            user_1.reg_status = False
         if len(pack) > 0:
             user_1.reg_status = True
             cur.execute('''SELECT first_name, nickname, metro_dep, metro_arr FROM users WHERE user_id=?''', (user_id,))
@@ -52,11 +50,8 @@ def get_curr_user_1(user_id):
                 user_1.nickname = i[1]
                 user_1.dep_code = i[2]
                 user_1.arr_code = i[3]
-
-
-@bot.message_handler(commands=not_working_commands)
-def sorry_no(message):
-    bot.send_message(message.chat.id, text=consts.no_func_text)
+        elif len(pack) == 0:
+            user_1.reg_status = False
 
 
 def listener(messages):
@@ -68,37 +63,81 @@ def listener(messages):
         if message.content_type == 'text':
             new_msg = str(message.text).lower()
 
+            # Общедоступные функции
             if new_msg == '/help':
                 help_funcs.help_func(message)
-            if new_msg == '/about':
+            elif new_msg == '/about':
                 about_funcs.about_func(message)
-            if new_msg == '/register':
+
+            # В разработке
+            elif new_msg == '/report':
+                error_funcs.no_func_error(message)
+            elif new_msg == '/review':
+                error_funcs.no_func_error(message)
+
+            # Функции, доступные только без регистрации
+            elif new_msg == '/register':
                 get_curr_user_1(user_id)
-                account_funcs.checking_registration(message)
-            if new_msg == '/delete_acc':
+                if not user_1.reg_status:
+                    account_funcs.get_basic_step(message)
+                elif user_1.reg_status:
+                    error_funcs.user_exists_error(message)
+
+            # Функции, доступные только с регистрацией
+            elif new_msg == '/delete_acc':
                 get_curr_user_1(user_id)
-                account_funcs.delete_account(message)
-            if new_msg == '/view_acc':
+                if user_1.reg_status:
+                    account_funcs.delete_account(message)
+                elif not user_1.reg_status:
+                    error_funcs.no_registration_error(message)
+
+            elif new_msg == '/view_acc':
                 get_curr_user_1(user_id)
-                account_funcs.view_acc_func(message)
-            if new_msg == '/souls_search':
+                if user_1.reg_status:
+                    account_funcs.view_acc_func(message)
+                elif not user_1.reg_status:
+                    error_funcs.no_registration_error(message)
+
+            elif new_msg == '/souls_search':
                 get_curr_user_1(user_id)
                 if user_1.reg_status:
                     soulmates_search_funcs.main_find_souls(user_1, user_id, chat_id)
                 else:
-                    bot.send_message(chat_id, text=consts.no_registration_error_text)
-            if new_msg == '/report':
-                pass
-            if new_msg == '/confirm':
-                confirmation_funcs.start_conf_process(message)
-            if new_msg == '/untrusted':
-                num = confirmation_funcs.get_unapproved_num(message)
-                bot.send_message(message.chat.id, str(num))
-            if new_msg == '/trust_me':
-                confirmation_funcs.approve_conf(message)
+                    error_funcs.no_registration_error(message)
 
-        if message.content_type == 'photo':
-            bot.send_message(chat_id, 'Как жаль, что я не могу понять, что вы прислали')
+            elif new_msg == '/confirm':
+                get_curr_user_1(user_id)
+                if user_1.reg_status:
+                    confirmation_funcs.start_conf_process(message)
+                elif not user_1.reg_status:
+                    error_funcs.no_registration_error(message)
+
+            elif new_msg == '/untrusted':
+                get_curr_user_1(user_id)
+                if user_1.reg_status:
+                    confirmation_funcs.send_unapproved_num(message)
+                elif not user_1.reg_status:
+                    error_funcs.no_registration_error(message)
+
+            elif new_msg == '/trust_me':
+                get_curr_user_1(user_id)
+                if user_1.reg_status:
+                    confirmation_funcs.approve_conf(message)
+                elif not user_1.reg_status:
+                    error_funcs.no_registration_error(message)
+
+            # В разработке
+            elif new_msg == '/edit_account':
+                get_curr_user_1(user_id)
+                if user_1.reg_status:
+                    error_funcs.no_func_error(message)
+                elif not user_1.reg_status:
+                    error_funcs.no_registration_error(message)
+
+        # Обработка сообщений, которые содержат не текст
+        elif message.content_type != 'text':
+            bot.send_message(chat_id, 'Я не умею пока обрабатывать никакие входящие сообщения, кроме текстовых, '
+                                      'только если я не прошу прислать мне такой файл.')
 
 
 bot.set_update_listener(listener)
