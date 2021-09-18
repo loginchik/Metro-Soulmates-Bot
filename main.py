@@ -91,6 +91,11 @@ def listener(messages):
                 pass
             if new_msg == '/confirm':
                 confirmation_funcs.start_conf_process(message)
+            if new_msg == '/untrusted':
+                num = confirmation_funcs.get_unapproved_num(message)
+                bot.send_message(message.chat.id, str(num))
+            if new_msg == '/trust_me':
+                confirmation_funcs.approve_conf(message)
 
         if message.content_type == 'photo':
             bot.send_message(chat_id, 'Как жаль, что я не могу понять, что вы прислали')
