@@ -145,4 +145,4 @@ def listener(messages):
 
 
 bot.set_update_listener(listener)
-bot.polling()
+bot.polling(none_stop=True)

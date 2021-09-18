@@ -2,7 +2,6 @@ import sqlite3 as sq
 
 import classes
 import consts
-import functions_fold.error_funcs
 
 user_1 = consts.user
 bot = consts.bot
@@ -91,7 +90,8 @@ def get_dep_step(message):
             bot.register_next_step_handler(send, get_arr)
 
     if stats_num_cur > 1:
-        way_num = bot.send_message(message.chat.id, text=consts.way_ask_text)
+        with open('metroways.png', 'rb') as img:
+            way_num = bot.send_photo(message.chat.id, photo=img, caption=consts.way_ask_text)
         bot.register_next_step_handler(way_num, few_ways_st_dep)
 
 
@@ -161,7 +161,8 @@ def get_arr(message):
                        metro_arr=user_1.arr_code
                        )
     if stats_num_cur > 1:
-        way_num = bot.send_message(message.chat.id, text=consts.way_ask_text)
+        with open('metroways.png', 'rb') as img:
+            way_num = bot.send_photo(message.chat.id, photo=img, caption=consts.way_ask_text)
         bot.register_next_step_handler(way_num, few_ways_st_arr)
 
 
@@ -220,10 +221,8 @@ def delete_account(message):
     user_id = message.from_user.id
 
     remove_user(user_id)
-    bot.send_message(chat_id, consts.acc_del_conf_text)
+    bot.send_message(chat_id, text=consts.acc_del_conf_text)
     user_1.delete_account()
-
-    functions_fold.error_funcs.other_error(message)
 
 
 # View account
