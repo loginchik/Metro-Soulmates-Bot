@@ -26,4 +26,4 @@ faq_text = '*FAQ*' \
 
 def send_faq(message):
     chat_id = message.chat.id
-    bot.send_message(chat_id, faq_text)
+    bot.send_message(chat_id, faq_text, parse_mode='MarkdownV2')
