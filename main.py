@@ -150,4 +150,4 @@ def listener(messages):
 
 
 bot.set_update_listener(listener)
-bot.polling(none_stop=True, timeout=None)
+bot.polling(non_stop=True)

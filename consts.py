@@ -1,11 +1,23 @@
 import classes
 import telebot
+import logging
 
 # consts
 token = '2036560356:AAHP_42shGmuMpPKtAKXEqWMBufretXMs_g'
 
+logger = logging.getLogger('TelebotExceptionHandler')
+
+
+class MyExceptionHandler(telebot.ExceptionHandler):
+
+    def handle(self, exception):
+        logger.error("Error calling API", exception)
+        return True
+
+
+exception_handler = MyExceptionHandler
 user = classes.User(None)
-bot = telebot.TeleBot(token)
+bot = telebot.TeleBot(token=token, exception_handler=exception_handler)
 
 # texts
 about_text = 'Metro Soulmates — это бот, разработанный небольшой командой студенток, которые хотели облегчить ' \
