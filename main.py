@@ -2,7 +2,7 @@ import sqlite3 as sq
 
 import consts
 from functions_fold import about_funcs, account_funcs, help_funcs, soulmates_search_funcs, \
-    confirmation_funcs, error_funcs
+    confirmation_funcs, error_funcs, faq_funcs
 
 bot = consts.bot
 user_1 = consts.user
@@ -70,7 +70,7 @@ def listener(messages):
             elif new_msg == '/about':
                 about_funcs.about_func(message)
             elif new_msg in ['/faq', 'faq']:
-                bot.send_message(chat_id, consts.faq_text)
+                faq_funcs.send_faq(message)
 
             # В разработке
             elif new_msg == '/report':
@@ -87,28 +87,28 @@ def listener(messages):
                     error_funcs.user_exists_error(message)
 
             # Функции, доступные только с регистрацией
-            elif new_msg in ['/view_account', 'посмотреть профиль']:
+            elif new_msg in ['/viewaccount', 'посмотреть профиль']:
                 get_curr_user_1(user_id)
                 if user_1.reg_status:
                     account_funcs.view_acc_func(message)
                 elif not user_1.reg_status:
                     error_funcs.no_registration_error(message)
 
-            elif new_msg in ['/edit_account', 'изменить аккаунт', 'редактировать профиль']:
+            elif new_msg in ['/editaccount', 'изменить аккаунт', 'редактировать профиль']:
                 get_curr_user_1(user_id)
                 if user_1.reg_status:
                     account_funcs.ask_what_to_edit_step(message)
                 elif not user_1.reg_status:
                     error_funcs.no_registration_error(message)
 
-            elif new_msg in ['delete_account', 'удалить профиль']:
+            elif new_msg in ['deleteaccount', 'удалить профиль']:
                 get_curr_user_1(user_id)
                 if user_1.reg_status:
                     account_funcs.delete_account(message)
                 elif not user_1.reg_status:
                     error_funcs.no_registration_error(message)
 
-            elif new_msg in ['/souls_search', 'поиск попутчиков', 'искать попутчиков', 'найти попутчиков',
+            elif new_msg in ['/soulssearch', 'поиск попутчиков', 'искать попутчиков', 'найти попутчиков',
                              'найти соула', 'поиск соула', 'искать соула']:
                 get_curr_user_1(user_id)
                 if user_1.reg_status:
@@ -130,7 +130,7 @@ def listener(messages):
                 elif not user_1.reg_status:
                     error_funcs.no_registration_error(message)
 
-            elif new_msg in ['/trust_me', 'подтвердить встречу']:
+            elif new_msg in ['/trustme', 'подтвердить встречу']:
                 get_curr_user_1(user_id)
                 if user_1.reg_status:
                     confirmation_funcs.approve_conf(message)
