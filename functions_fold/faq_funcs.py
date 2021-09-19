@@ -1,6 +1,6 @@
 from consts import bot
 
-faq_text = 'нет ответов, увы'
+faq_text = 'нет ответов, увы, но очень хотелось бы их иметь'
 
 
 def send_faq(message):
