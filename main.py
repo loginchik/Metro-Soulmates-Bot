@@ -65,10 +65,12 @@ def listener(messages):
             new_msg = str(message.text).lower()
 
             # Общедоступные функции
-            if new_msg in ['/help', 'помощь']:
+            if new_msg in ['/help', 'помощь', '/start']:
                 help_funcs.help_func(message)
             elif new_msg == '/about':
                 about_funcs.about_func(message)
+            elif new_msg in ['/faq', 'faq']:
+                bot.send_message(chat_id, consts.faq_text)
 
             # В разработке
             elif new_msg == '/report':
@@ -85,17 +87,24 @@ def listener(messages):
                     error_funcs.user_exists_error(message)
 
             # Функции, доступные только с регистрацией
-            elif new_msg in ['delete_acc', 'удалить аккаунт']:
-                get_curr_user_1(user_id)
-                if user_1.reg_status:
-                    account_funcs.delete_account(message)
-                elif not user_1.reg_status:
-                    error_funcs.no_registration_error(message)
-
-            elif new_msg in ['/view_acc', 'посмотреть профиль']:
+            elif new_msg in ['/view_account', 'посмотреть профиль']:
                 get_curr_user_1(user_id)
                 if user_1.reg_status:
                     account_funcs.view_acc_func(message)
+                elif not user_1.reg_status:
+                    error_funcs.no_registration_error(message)
+
+            elif new_msg in ['/edit_account', 'изменить аккаунт', 'редактировать профиль']:
+                get_curr_user_1(user_id)
+                if user_1.reg_status:
+                    account_funcs.ask_what_to_edit_step(message)
+                elif not user_1.reg_status:
+                    error_funcs.no_registration_error(message)
+
+            elif new_msg in ['delete_account', 'удалить профиль']:
+                get_curr_user_1(user_id)
+                if user_1.reg_status:
+                    account_funcs.delete_account(message)
                 elif not user_1.reg_status:
                     error_funcs.no_registration_error(message)
 
@@ -107,7 +116,7 @@ def listener(messages):
                 else:
                     error_funcs.no_registration_error(message)
 
-            elif new_msg == '/confirm':
+            elif new_msg in ['/confirm', 'мы встретились']:
                 get_curr_user_1(user_id)
                 if user_1.reg_status:
                     confirmation_funcs.start_conf_process(message)
@@ -121,7 +130,7 @@ def listener(messages):
                 elif not user_1.reg_status:
                     error_funcs.no_registration_error(message)
 
-            elif new_msg == '/trust_me':
+            elif new_msg in ['/trust_me', 'подтвердить встречу']:
                 get_curr_user_1(user_id)
                 if user_1.reg_status:
                     confirmation_funcs.approve_conf(message)
@@ -129,12 +138,6 @@ def listener(messages):
                     error_funcs.no_registration_error(message)
 
             # В разработке
-            elif new_msg == '/edit_account':
-                get_curr_user_1(user_id)
-                if user_1.reg_status:
-                    account_funcs.ask_what_to_edit_step(message)
-                elif not user_1.reg_status:
-                    error_funcs.no_registration_error(message)
 
             # Обработка непонятного текста
             else:
