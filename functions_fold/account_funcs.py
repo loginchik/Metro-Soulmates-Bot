@@ -8,6 +8,7 @@ bot = consts.bot
 
 
 # write information about new user into db
+# some comment
 def write_new_user(user_id, first_name, nickname, metro_dep, metro_arr):
     with sq.connect('db/users.db') as con:
         cur = con.cursor()
