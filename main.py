@@ -101,7 +101,7 @@ def listener(messages):
                 elif not user_1.reg_status:
                     error_funcs.no_registration_error(message)
 
-            elif new_msg in ['deleteaccount', 'удалить профиль']:
+            elif new_msg in ['/deleteaccount', 'удалить профиль']:
                 get_curr_user_1(user_id)
                 if user_1.reg_status:
                     account_funcs.delete_account(message)
