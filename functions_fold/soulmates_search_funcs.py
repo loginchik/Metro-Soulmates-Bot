@@ -39,7 +39,7 @@ def find_dep_souls(stations_pack, user_id):
         with sq.connect('db/users.db') as con:
             cur = con.cursor()
 
-            cur.execute('''SELECT user_id FROM beta_users WHERE metro_dep=?''', (station_num,))
+            cur.execute('''SELECT user_id FROM users WHERE metro_dep=?''', (station_num,))
             soul_dep_pack = cur.fetchall()
         # упаковка подходящих по станции отправления в словарь souls_all
         for m in soul_dep_pack:
