@@ -131,7 +131,7 @@ def get_soul_info(soul_id):
             soul.dep_way = i[0]
             soul.dep_name = i[1]
 
-        cur.execute('''SELECT way, number FROM stations_coo WHERE code=?''', (soul.arr_code,))
+        cur.execute('''SELECT way, name FROM stations_coo WHERE code=?''', (soul.arr_code,))
         arr_pack = cur.fetchall()
         for i in arr_pack:
             soul.arr_way = i[0]
