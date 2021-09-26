@@ -44,8 +44,8 @@ def prof_info(user_id):
             user.arr_way = name[0]
             user.arr_name = name[1]
     text = str(user.name).title() + \
-           '\n' + str(user.nickname) + \
-           '\n\n⭐:' + str(user.stars) + \
+           '\n@' + str(user.nickname) + \
+           '\n\n⭐: ' + str(user.stars) + \
            '\n\n🚇 Метро отправления:\n' + str(user.dep_name).title() + " (" + str(user.dep_way) + \
            " линия)" + \
            '\n\n🚇 Метро прибытия:\n' + str(user.arr_name).title() + \
@@ -370,7 +370,7 @@ def change_arr_few_stations(way_num, stat_name, user_id, message):
         if result:
             with sq.connect('db/users.db') as con:
                 cur = con.cursor()
-                cur.execute('UPDATE users SET metro_dep=? WHERE user_id=?', (new_arr_code, user_id))
+                cur.execute('UPDATE users SET metro_arr=? WHERE user_id=?', (new_arr_code, user_id))
                 con.commit()
             view_acc_func(message)
     except:
