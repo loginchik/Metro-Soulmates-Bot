@@ -142,11 +142,9 @@ def get_soul_info(soul_id):
 def send_soul_info(soul_info_class, chat_id):
     soul = soul_info_class
 
-    text = 'Имя: ' + str(soul.name).title() + \
-           '\n\nНик: @' + str(soul.nickname) + \
-           '\n\nСтанция отправления: ' + str(soul.dep_name).title() + \
-           '\n\nСтанция прибытия: ' + str(soul.arr_name).title() + \
-           '\n\nВстреч: ' + str(soul.stars)
+    text = str(soul.name).title() + '\n' + str(soul.nickname) + '⭐: ' + str(soul.stars) + \
+           '\n\n🚇 Метро отправления:\n' + str(soul.dep_name).title() + \
+           '\n\n🚇 Метро прибытия:\n' + str(soul.arr_name).title()
     bot.send_message(chat_id, text=text)
 
 

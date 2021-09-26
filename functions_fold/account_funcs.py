@@ -43,13 +43,13 @@ def prof_info(user_id):
         for name in cur.fetchall():
             user.arr_way = name[0]
             user.arr_name = name[1]
-    text = "Имя — " + str(user.name).title() + \
-           '\n' + "Ник в телеграме — @" + str(user.nickname) + \
-           '\n\n' + "Метро отправленя: \n" + str(user.dep_name).title() + " (" + str(user.dep_way) + \
-           " линия метро)" + \
-           '\n\n' + "Метро прибытия: \n" + str(user.arr_name).title() + \
-           " (" + str(user.arr_way) + " линия метро)" + \
-           '\n\n' + 'Звезд: ' + str(user.stars)
+    text = str(user.name).title() + \
+           '\n' + str(user.nickname) + \
+           '\n\n⭐:' + str(user.stars) + \
+           '\n\n🚇 Метро отправления:\n' + str(user.dep_name).title() + " (" + str(user.dep_way) + \
+           " линия)" + \
+           '\n\n🚇 Метро прибытия:\n' + str(user.arr_name).title() + \
+           " (" + str(user.arr_way) + " линия)"
     return text
 
 
