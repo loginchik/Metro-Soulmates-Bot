@@ -77,6 +77,8 @@ def listener(messages):
                 error_funcs.no_func_error(message)
             elif new_msg == '/review':
                 error_funcs.no_func_error(message)
+            elif new_msg == '/mymeets':
+                error_funcs.no_func_error(message)
 
             # Функции, доступные только без регистрации
             elif new_msg in ['/register', 'регистрация', 'зарегистрироваться']:
