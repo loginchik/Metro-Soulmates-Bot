@@ -23,7 +23,10 @@ faq_text = 'FAQ' \
            '\n\nЕсли у вас остались еще вопросы по поводу того, как пользоваться ботом, можете смело писать ' \
            'разработчику — @loginchik'
 
+file = 'FAQ.pdf'
 
 def send_faq(message):
     chat_id = message.chat.id
     bot.send_message(chat_id, faq_text)
+    with open(file, 'rb'):
+        bot.send_document(chat_id, data=file)
