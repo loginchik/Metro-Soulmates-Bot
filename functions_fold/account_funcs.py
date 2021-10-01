@@ -7,16 +7,6 @@ user_1 = consts.user
 bot = consts.bot
 
 
-# write information about new user into db
-# some comment
-def write_new_user(user_id, first_name, nickname, metro_dep, metro_arr):
-    with sq.connect('db/users.db') as con:
-        cur = con.cursor()
-        cur.execute('INSERT INTO users (user_id, first_name, nickname, metro_dep, metro_arr)'
-                    'VALUES (?, ?, ?, ?, ?)', (user_id, first_name, nickname, metro_dep, metro_arr))
-        con.commit()
-
-
 def prof_info(user_id):
     user = classes.User(user_id)
 
@@ -43,6 +33,7 @@ def prof_info(user_id):
         for name in cur.fetchall():
             user.arr_way = name[0]
             user.arr_name = name[1]
+
     text = str(user.name).title() + \
            '\n@' + str(user.nickname) + \
            '\n\n⭐: ' + str(user.stars) + \
@@ -56,10 +47,15 @@ def prof_info(user_id):
 # Registration
 def get_basic_step(message):
     try:
-        global user_1
-        user_1.user_id = int(message.from_user.id)
-        user_1.name = str(message.from_user.first_name).lower()
-        user_1.nickname = str(message.from_user.username).lower()
+        user_id = int(message.from_user.id)
+        name = str(message.from_user.first_name).lower()
+        nickname = str(message.from_user.username).lower()
+
+        with sq.connect('db/users.db') as con:
+            cur = con.cursor()
+            cur.execute('''INSERT INTO users (user_id, first_name, nickname) VALUES (?, ?, ?)''',
+                        (user_id, name, nickname))
+            con.commit()
 
         # follow next step
         send = bot.send_message(message.chat.id, text=consts.mdep_ask_text)
@@ -70,26 +66,28 @@ def get_basic_step(message):
 
 def get_dep_step(message):
     try:
-        global user_1
-
-        # saving metro dep
-        user_1.dep_name = str(message.text).lower()
+        dep_name = str(message.text).lower()
+        user_id = message.from_user.id
 
         with sq.connect('db/metro.db') as con:
             cur = con.cursor()
-            cur.execute('''SELECT count(code) as stats_here FROM stations_coo WHERE name=?''', (user_1.dep_name,))
-            stats_here = cur.fetchall()
-            for stats_num in stats_here:
-                stats_num_cur = stats_num[0]
+            cur.execute('''SELECT count(code) as stats_here FROM stations_coo WHERE name=?''', (dep_name,))
+            stats_here = cur.fetchone()
+            stats_num_cur = stats_here[0]
 
             if stats_num_cur == 0:
                 error_funcs.no_station_found(message)
             if stats_num_cur == 1:
-                cur.execute('''SELECT code FROM stations_coo WHERE name=?''', (user_1.dep_name,))
+                cur.execute('''SELECT code FROM stations_coo WHERE name=?''', (dep_name,))
                 code_pack = cur.fetchall()
                 for code in code_pack:
                     code_dep = str(''.join(code)).lower()
-                user_1.dep_code = code_dep
+                con.close()
+
+                with sq.connect('db/users.db') as con:
+                    cur = con.cursor()
+                    cur.execute('''UPDATE users SET metro_dep=? WHERE user_id=?''', (code_dep, user_id))
+                    con.commit()
 
                 # follow next step
                 send = bot.send_message(message.chat.id, text=consts.marr_ask_text)
@@ -98,39 +96,43 @@ def get_dep_step(message):
         if stats_num_cur > 1:
             with open('metroways.png', 'rb') as img:
                 way_num = bot.send_photo(message.chat.id, photo=img, caption=consts.way_ask_text)
-            bot.register_next_step_handler(way_num, few_ways_st_dep)
+            bot.register_next_step_handler(way_num, few_ways_st_dep, dep_name)
     except:
         error_funcs.other_error(message)
 
 
-def few_ways_st_dep(message):
+def few_ways_st_dep(message, dep_name):
     try:
-        global user_1
         way = int(message.text)
+        user_id = message.from_user.id
 
         with sq.connect('db/metro.db') as con:
             cur = con.cursor()
 
-            cur.execute('''SELECT count(*) FROM stations_coo WHERE way=? AND name=?''', (way, user_1.dep_name))
+            cur.execute('''SELECT count(*) FROM stations_coo WHERE way=? AND name=?''', (way, dep_name))
             got = cur.fetchone()
             for i in got:
-                print(i)
                 if i > 0:
                     exists = True
                 else:
                     exists = False
 
         if exists:
-            user_1.dep_way = way
+            dep_way = way
 
             with sq.connect('db/metro.db') as con:
                 cur = con.cursor()
 
-                cur.execute("SELECT code FROM stations_coo WHERE name=? AND way=?", (user_1.dep_name, user_1.dep_way))
+                cur.execute("SELECT code FROM stations_coo WHERE name=? AND way=?", (dep_name, dep_way))
                 code_pack = cur.fetchall()
                 for code in code_pack:
                     code_dep = str(''.join(code)).lower()
-            user_1.dep_code = code_dep
+                con.close()
+
+                with sq.connect('db/users.db') as con:
+                    cur = con.cursor()
+                    cur.execute('''UPDATE users SET metro_dep=? WHERE user_id=?''', (code_dep, user_id))
+                    con.commit()
 
             # follow next step
             send = bot.send_message(message.chat.id, text=consts.marr_ask_text)
@@ -144,49 +146,50 @@ def few_ways_st_dep(message):
 
 def get_arr(message):
     try:
-        global user_1
         # save metro arr
-        user_1.arr_name = str(message.text).lower()
+        arr_name = str(message.text).lower()
+        user_id = message.from_user.id
 
         with sq.connect('db/metro.db') as con:
             cur = con.cursor()
+            cur.execute('''SELECT count(code) as stats_here FROM stations_coo WHERE name=?''', (arr_name,))
+            stats_here = cur.fetchone()
+            stats_num_cur = stats_here[0]
 
-            cur.execute('''SELECT count(code) as stats_here FROM stations_coo WHERE name=?''', (user_1.arr_name,))
-            stats_here = cur.fetchall()
-            for stats_num in stats_here:
-                stats_num_cur = stats_num[0]
+            if stats_num_cur == 0:
+                error_funcs.no_station_found(message)
 
-        if stats_num_cur == 0:
-            error_funcs.no_station_found(message)
-        if stats_num_cur == 1:
-            cur.execute("SELECT code FROM stations_coo WHERE name=?", (user_1.arr_name,))
-            code_pack = cur.fetchall()
-            for code in code_pack:
-                code_arr = str(''.join(code)).lower()
-                user_1.arr_code = code_arr
-            write_new_user(user_id=user_1.user_id,
-                           first_name=user_1.name,
-                           nickname=user_1.nickname,
-                           metro_dep=user_1.dep_code,
-                           metro_arr=user_1.arr_code
-                           )
+            if stats_num_cur == 1:
+                cur.execute("SELECT code FROM stations_coo WHERE name=?", (arr_name,))
+                code_pack = cur.fetchall()
+                for code in code_pack:
+                    code_arr = str(''.join(code)).lower()
+
+                con.close()
+
+                with sq.connect('db/users.db') as con:
+                    cur = con.cursor()
+                    cur.execute('''UPDATE users SET metro_arr=? WHERE user_id=?''', (code_arr, user_id))
+                    con.commit()
+
+            bot.send_message(chat_id=message.chat.id, text=consts.acc_create_conf_text)
+
         if stats_num_cur > 1:
             with open('metroways.png', 'rb') as img:
                 way_num = bot.send_photo(message.chat.id, photo=img, caption=consts.way_ask_text)
-            bot.register_next_step_handler(way_num, few_ways_st_arr)
+            bot.register_next_step_handler(way_num, few_ways_st_arr, arr_name)
     except:
         error_funcs.other_error(message)
 
 
-def few_ways_st_arr(message):
+def few_ways_st_arr(message, arr_name):
     try:
-        global user_1
         way = int(message.text)
+        user_id = message.from_user.id
 
         with sq.connect('db/metro.db') as con:
             cur = con.cursor()
-
-            cur.execute('''SELECT count(*) FROM stations_coo WHERE way=? AND name=?''', (way, user_1.arr_name))
+            cur.execute('''SELECT count(*) FROM stations_coo WHERE way=? AND name=?''', (way, arr_name))
             got = cur.fetchone()
             for i in got:
                 if i > 0:
@@ -195,24 +198,20 @@ def few_ways_st_arr(message):
                     exists = False
 
         if exists:
-            user_1.arr_way = way
-
             with sq.connect('db/metro.db') as con:
                 cur = con.cursor()
-
                 cur.execute('''SELECT code FROM stations_coo WHERE name=? AND way=?''',
-                            (user_1.arr_name, user_1.arr_way))
+                            (arr_name, way))
                 code_pack = cur.fetchall()
                 for code in code_pack:
                     code_arr = str(''.join(code)).lower()
-            user_1.arr_code = code_arr
-            write_new_user(user_id=user_1.user_id,
-                           first_name=user_1.name,
-                           nickname=user_1.nickname,
-                           metro_dep=user_1.dep_code,
-                           metro_arr=user_1.arr_code
-                           )
-            user_1.reg_status = True
+                con.close()
+
+                with sq.connect('db/users.db') as con:
+                    cur = con.cursor()
+                    cur.execute('''UPDATE users SET metro_arr=? WHERE user_id=?''', (code_arr, user_id))
+                    con.commit()
+
             bot.send_message(message.chat.id, text=consts.acc_create_conf_text)
 
         if not exists:
@@ -222,6 +221,26 @@ def few_ways_st_arr(message):
 
 
 # Delete account
+def del_confirm(message):
+    user_id = message.from_user.id
+    chat_id = message.chat.id
+
+    if message.content_type == 'text':
+        decision = str(message.text).lower()
+        if decision == 'да':
+            try:
+                remove_user(user_id)
+                bot.send_message(chat_id, text=consts.acc_del_conf_text)
+            except:
+                error_funcs.other_error(message)
+        elif decision == 'нет':
+            bot.send_message(chat_id=message.chat.id, text=consts.do_not_delete_acc_text)
+        else:
+            error_funcs.other_error(message)
+    else:
+        error_funcs.not_text_error(message)
+
+
 def remove_user(user_id):
     with sq.connect('db/users.db') as con:
         cur = con.cursor()
@@ -232,13 +251,10 @@ def remove_user(user_id):
 
 def delete_account(message):
     try:
-        global user_1
         chat_id = message.chat.id
-        user_id = message.from_user.id
 
-        remove_user(user_id)
-        bot.send_message(chat_id, text=consts.acc_del_conf_text)
-        user_1.delete_account()
+        decision = bot.send_message(chat_id, text=consts.delete_acc_confirm_ask_text)
+        bot.register_next_step_handler(decision, del_confirm)
     except:
         error_funcs.other_error(message)
 
@@ -359,7 +375,6 @@ def change_arr_few_stations(way_num, stat_name, user_id, message):
     try:
         way = int(way_num.text)
         name = stat_name
-        result = None
 
         with sq.connect('db/metro.db') as con:
             cur = con.cursor()
