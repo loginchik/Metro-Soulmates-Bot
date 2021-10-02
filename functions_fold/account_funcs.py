@@ -231,6 +231,7 @@ def del_confirm(message):
             try:
                 remove_user(user_id)
                 bot.send_message(chat_id, text=consts.acc_del_conf_text)
+                bot.send_message(chat_id, text=consts.goodbye_text)
             except:
                 error_funcs.other_error(message)
         elif decision == 'нет':
