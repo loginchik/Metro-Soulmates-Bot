@@ -1,14 +1,13 @@
 import sqlite3 as sq
 
+import classes
 import consts
 from functions_fold import about_funcs, account_funcs, help_funcs, soulmates_search_funcs, \
     confirmation_funcs, error_funcs, faq_funcs
 
 bot = consts.bot
-user_1 = consts.user
 
-
-# Creating a users table if not exists
+# Create users db if not exists
 with sq.connect('db/users.db') as con:
     cur = con.cursor()
     cur.execute('''CREATE TABLE IF NOT EXISTS users (
@@ -22,6 +21,7 @@ with sq.connect('db/users.db') as con:
       )''')
     con.commit()
 
+# Create confirms db if not exists
 with sq.connect('db/users.db') as con:
     cur = con.cursor()
 
@@ -34,37 +34,66 @@ with sq.connect('db/users.db') as con:
         )''')
 
 
-def get_curr_user_1(user_id):
-    global user_1
+# Func gets current user info from db
+def get_current_user(user_id):
+    # Create a class to store data
+    user = classes.User(user_id)
 
-    with sq.connect('db/users.db') as con:
+    # Connect to db
+    con = sq.connect('db/users.db')
+    cur = con.cursor()
+
+    # Count same user_id in db
+    cur.execute('SELECT count(user_id) FROM users WHERE user_id=?', (user_id,))
+    ids_num = cur.fetchone()[0]
+
+    # Close connection
+    con.close()
+
+    # Change reg_status
+    if ids_num == 0:
+        user.reg_status = False
+
+    elif ids_num > 0:
+        user.reg_status = True
+
+    # If registered, get info about the user
+    if user.reg_status:
+
+        # Connect to db
+        con = sq.connect('db/users.db')
         cur = con.cursor()
 
-        cur.execute('''SELECT user_id FROM users WHERE user_id=?''', (user_id,))
-        pack = cur.fetchall()
-        if len(pack) > 0:
-            user_1.reg_status = True
-            cur.execute('''SELECT first_name, nickname, metro_dep, metro_arr FROM users WHERE user_id=?''', (user_id,))
-            pack = cur.fetchall()
-            for i in pack:
-                user_1.name = i[0]
-                user_1.nickname = i[1]
-                user_1.dep_code = i[2]
-                user_1.arr_code = i[3]
-        elif len(pack) == 0:
-            user_1.reg_status = False
+        # Execute information
+        cur.execute('SELECT SELECT first_name, nickname, metro_dep, metro_arr FROM users WHERE user_id=?', (user_id,))
+        user_info = cur.fetchone()
+
+        # Close connection
+        con.close()
+
+        # Load data into class
+        user.name = user_info[0]
+        user.nickname = user_info[1]
+        user.dep_code = user_info[2]
+        user.arr_code = user_info[3]
+
+    else:
+        pass
+
+    return user
 
 
 def listener(messages):
-    global user_1
     for message in messages:
+
+        # Save user's message data
         chat_id = message.chat.id
         user_id = message.chat.id
 
         if message.content_type == 'text':
             new_msg = str(message.text).lower()
 
-            # Общедоступные функции
+            # Registration is not required
             if new_msg in ['/help', 'помощь', '/start']:
                 help_funcs.help_func(message)
             elif new_msg == '/about':
@@ -72,7 +101,7 @@ def listener(messages):
             elif new_msg in ['/faq', 'faq']:
                 faq_funcs.send_faq(message)
 
-            # В разработке
+            # Not developed
             elif new_msg == '/report':
                 error_funcs.no_func_error(message)
             elif new_msg == '/review':
@@ -80,72 +109,70 @@ def listener(messages):
             elif new_msg == '/mymeets':
                 error_funcs.no_func_error(message)
 
-            # Функции, доступные только без регистрации
+            # Only without registration
             elif new_msg in ['/register', 'регистрация', 'зарегистрироваться']:
-                get_curr_user_1(user_id)
-                if not user_1.reg_status:
+                user = get_current_user(user_id)
+                if not user.reg_status:
                     account_funcs.get_basic_step(message)
-                elif user_1.reg_status:
+                elif user.reg_status:
                     error_funcs.user_exists_error(message)
 
-            # Функции, доступные только с регистрацией
+            # Only with registration
             elif new_msg in ['/viewaccount', 'посмотреть профиль']:
-                get_curr_user_1(user_id)
-                if user_1.reg_status:
+                user = get_current_user(user_id)
+                if user.reg_status:
                     account_funcs.view_acc_func(message)
-                elif not user_1.reg_status:
+                elif not user.reg_status:
                     error_funcs.no_registration_error(message)
 
             elif new_msg in ['/editaccount', 'изменить аккаунт', 'редактировать профиль']:
-                get_curr_user_1(user_id)
-                if user_1.reg_status:
+                user = get_current_user(user_id)
+                if user.reg_status:
                     account_funcs.ask_what_to_edit_step(message)
-                elif not user_1.reg_status:
+                elif not user.reg_status:
                     error_funcs.no_registration_error(message)
 
             elif new_msg in ['/deleteaccount', 'удалить профиль']:
-                get_curr_user_1(user_id)
-                if user_1.reg_status:
+                user = get_current_user(user_id)
+                if user.reg_status:
                     account_funcs.delete_account(message)
-                elif not user_1.reg_status:
+                elif not user.reg_status:
                     error_funcs.no_registration_error(message)
 
             elif new_msg in ['/soulssearch', 'поиск попутчиков', 'искать попутчиков', 'найти попутчиков',
                              'найти соула', 'поиск соула', 'искать соула']:
-                get_curr_user_1(user_id)
-                if user_1.reg_status:
-                    soulmates_search_funcs.main_find_souls(user_1, user_id, message)
+                user = get_current_user(user_id)
+                if user.reg_status:
+                    soulmates_search_funcs.main_find_souls(message=message, user_class=user, user_id=user_id)
                 else:
                     error_funcs.no_registration_error(message)
 
             elif new_msg in ['/confirm', 'мы встретились']:
-                get_curr_user_1(user_id)
-                if user_1.reg_status:
+                user = get_current_user(user_id)
+                if user.reg_status:
                     confirmation_funcs.start_conf_process(message)
-                elif not user_1.reg_status:
+                elif not user.reg_status:
                     error_funcs.no_registration_error(message)
 
             elif new_msg == '/untrusted':
-                get_curr_user_1(user_id)
-                if user_1.reg_status:
+                user = get_current_user(user_id)
+                if user.reg_status:
                     confirmation_funcs.send_unapproved_num(message)
-                elif not user_1.reg_status:
+                elif not user.reg_status:
                     error_funcs.no_registration_error(message)
 
             elif new_msg in ['/trustme', 'подтвердить встречу']:
-                get_curr_user_1(user_id)
-                if user_1.reg_status:
+                user = get_current_user(user_id)
+                if user.reg_status:
                     confirmation_funcs.approve_conf(message)
-                elif not user_1.reg_status:
+                elif not user.reg_status:
                     error_funcs.no_registration_error(message)
 
-            # В разработке
-
-            # Обработка непонятного текста
+            # Command is not recognized
             else:
                 error_funcs.ununderstandable_text(message)
 
-        # Обработка сообщений, которые содержат не текст
+        # Content type != text
         elif message.content_type != 'text':
             bot.send_message(chat_id, 'Я не умею пока обрабатывать никакие входящие сообщения, кроме текстовых, '
                                       'только если я не прошу прислать мне такой файл.')

@@ -49,3 +49,18 @@ def no_station_on_way_found(message):
     text = consts.few_ways_no_station_text
     bot.reply_to(message, text)
     bot.send_sticker(message.chat.id, data=error_sticker)
+
+
+def not_nick_sent(message):
+    text = consts.not_nick_text
+    bot.reply_to(message, text)
+
+
+def soul_not_registered(message):
+    text = consts.soul_is_not_reg_text
+    bot.reply_to(message, text)
+
+
+def not_suitable_conf_format(message):
+    text = consts.conf_not_suitable_format_text
+    bot.reply_to(message, text)

@@ -37,8 +37,10 @@ class Confirmation(object):
         self.user_id = None
         self.soul_id = None
         self.file_name = None
+        self.date = None
 
     def reset(self):
         self.user_id = None
         self.soul_id = None
         self.file_name = None
+        self.date = None
