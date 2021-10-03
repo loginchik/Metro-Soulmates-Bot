@@ -1,7 +1,7 @@
 import sqlite3 as sq
 import consts
 from functions_fold import about_funcs, account_funcs, help_funcs, soulmates_search_funcs, \
-    confirmation_funcs, error_funcs, faq_funcs, statistic_funcs
+    confirmation_funcs, error_funcs, faq_funcs
 
 bot = consts.bot
 user_1 = consts.user
@@ -31,26 +31,6 @@ with sq.connect('db/users.db') as con:
         file TEXT,
         authorized INTEGER DEFAULT 0
         )''')
-    con.commit()
-
-
-# Func checks password and, if right, forwards to the next func
-def check_password(message):
-    # Open file
-    admin_pass_file_name = 'admin_pswd.txt'
-    admin_pass_file = open(admin_pass_file_name, 'r')
-
-    # Get password from file
-    admin_pass = admin_pass_file.read()
-
-    # Close file
-    admin_pass_file.close()
-
-    # Check if its correct
-    if message.text == admin_pass:
-        statistic_funcs.admin_stats(message)
-    else:
-        bot.send_message(message.chat.id, 'Wrong. Exit')
 
 
 # Func gets current user info from db
@@ -73,6 +53,50 @@ def get_curr_user_1(user_id):
                 user_1.arr_code = i[3]
         elif len(pack) == 0:
             user_1.reg_status = False
+
+
+def check_password(message):
+    # Open file
+    admin_pass_file_name = 'admin_pswd.txt'
+    admin_pass_file = open(admin_pass_file_name, 'r')
+
+    # Get password from file
+    admin_pass = admin_pass_file.read()
+
+    # Close file
+    admin_pass_file.close()
+
+    # Check if its correct
+    if message.text == admin_pass:
+        admin_stats(message)
+    else:
+        bot.send_message(message.chat.id, 'Wrong. Exit')
+
+
+def admin_stats(message):
+    try:
+        # Save user's message data
+        chat_id = message.chat.id
+
+        # Connect to db
+        con = sq.connect('db/users.db')
+        cur = con.cursor()
+
+        # Collect data
+        cur.execute('SELECT count(user_id) FROM users')
+        users_num = cur.fetchone()[0]
+
+        cur.execute('SELECT count(*) FROM confirms')
+        confirms_num = cur.fetchone()[0]
+
+        # Close connection
+        con.close()
+
+        # Send data
+        bot.send_message(message.chat.id, 'Users: {0}\nConfirms: {1}'.format(users_num, confirms_num))
+
+    except:
+        error_funcs.other_error(message)
 
 
 def listener(messages):
@@ -171,8 +195,8 @@ def listener(messages):
 
             # Admin
             elif new_msg == '/admin':
-                user_pwd = bot.send_message(chat_id, 'Password?')
-                bot.register_next_step_handler(user_pwd, check_password)
+                password = bot.send_message(chat_id, 'Password?')
+                bot.register_next_step_handler(password, check_password)
 
             # Command is not recognized
             else:
