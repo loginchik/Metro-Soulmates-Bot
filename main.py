@@ -1,12 +1,10 @@
 import sqlite3 as sq
-
-import classes
 import consts
 from functions_fold import about_funcs, account_funcs, help_funcs, soulmates_search_funcs, \
     confirmation_funcs, error_funcs, faq_funcs
 
 bot = consts.bot
-current_user = consts.user
+user_1 = consts.user
 
 # Create users db if not exists
 with sq.connect('db/users.db') as con:
@@ -36,55 +34,29 @@ with sq.connect('db/users.db') as con:
 
 
 # Func gets current user info from db
-def get_current_user(user_id):
-    global current_user
+def get_curr_user_1(user_id):
+    global user_1
 
-    # Connect to db
-    con = sq.connect('db/users.db')
-    cur = con.cursor()
-
-    # Count same user_id in db
-    cur.execute('SELECT user_id FROM users WHERE user_id=?', (user_id,))
-    pack = cur.fetchall()
-
-    # Close connection
-    con.close()
-
-    pack_len = len(pack)
-
-    # Change reg_status
-    if pack_len == 0:
-        current_user.reg_status = False
-
-    elif pack_len > 0:
-        current_user.reg_status = True
-
-    # If registered, get info about the user
-    if current_user.reg_status:
-
-        # Connect to db
-        con = sq.connect('db/users.db')
+    with sq.connect('db/users.db') as con:
         cur = con.cursor()
 
-        # Execute information
-        cur.execute('SELECT SELECT first_name, nickname, metro_dep, metro_arr FROM users WHERE user_id=?', (user_id,))
-        user_info = cur.fetchone()
-
-        # Close connection
-        con.close()
-
-        # Load data into class
-        current_user.name = user_info[0]
-        current_user.nickname = user_info[1]
-        current_user.dep_code = user_info[2]
-        current_user.arr_code = user_info[3]
-
-    else:
-        pass
+        cur.execute('''SELECT user_id FROM users WHERE user_id=?''', (user_id,))
+        pack = cur.fetchall()
+        if len(pack) > 0:
+            user_1.reg_status = True
+            cur.execute('''SELECT first_name, nickname, metro_dep, metro_arr FROM users WHERE user_id=?''', (user_id,))
+            pack = cur.fetchall()
+            for i in pack:
+                user_1.name = i[0]
+                user_1.nickname = i[1]
+                user_1.dep_code = i[2]
+                user_1.arr_code = i[3]
+        elif len(pack) == 0:
+            user_1.reg_status = False
 
 
 def listener(messages):
-    global current_user
+    global user_1
     for message in messages:
 
         # Save user's message data
@@ -112,53 +84,61 @@ def listener(messages):
 
             # Only without registration
             elif new_msg in ['/register', 'регистрация', 'зарегистрироваться']:
-                if not current_user.reg_status:
+                get_curr_user_1(user_id)
+                if not user_1.reg_status:
                     account_funcs.get_basic_step(message)
-                elif current_user.reg_status:
+                elif user_1.reg_status:
                     error_funcs.user_exists_error(message)
 
             # Only with registration
             elif new_msg in ['/viewaccount', 'посмотреть профиль']:
-                if current_user.reg_status:
+                get_curr_user_1(user_id)
+                if user_1.reg_status:
                     account_funcs.view_acc_func(message)
-                elif not current_user.reg_status:
+                elif not user_1.reg_status:
                     error_funcs.no_registration_error(message)
 
             elif new_msg in ['/editaccount', 'изменить аккаунт', 'редактировать профиль']:
-                if current_user.reg_status:
+                get_curr_user_1(user_id)
+                if user_1.reg_status:
                     account_funcs.ask_what_to_edit_step(message)
-                elif not current_user.reg_status:
+                elif not user_1.reg_status:
                     error_funcs.no_registration_error(message)
 
             elif new_msg in ['/deleteaccount', 'удалить профиль']:
-                if current_user.reg_status:
+                get_curr_user_1(user_id)
+                if user_1.reg_status:
                     account_funcs.delete_account(message)
-                elif not current_user.reg_status:
+                elif not user_1.reg_status:
                     error_funcs.no_registration_error(message)
 
             elif new_msg in ['/soulssearch', 'поиск попутчиков', 'искать попутчиков', 'найти попутчиков',
                              'найти соула', 'поиск соула', 'искать соула']:
-                if current_user.reg_status:
-                    soulmates_search_funcs.main_find_souls(message=message, user_class=current_user, user_id=user_id)
+                get_curr_user_1(user_id)
+                if user_1.reg_status:
+                    soulmates_search_funcs.main_find_souls(message=message, user_class=user_1, user_id=user_id)
                 else:
                     error_funcs.no_registration_error(message)
 
             elif new_msg in ['/confirm', 'мы встретились']:
-                if current_user.reg_status:
+                get_curr_user_1(user_id)
+                if user_1.reg_status:
                     confirmation_funcs.start_conf_process(message)
-                elif not current_user.reg_status:
+                elif not user_1.reg_status:
                     error_funcs.no_registration_error(message)
 
             elif new_msg == '/untrusted':
-                if current_user.reg_status:
+                get_curr_user_1(user_id)
+                if user_1.reg_status:
                     confirmation_funcs.send_unapproved_num(message)
-                elif not current_user.reg_status:
+                elif not user_1.reg_status:
                     error_funcs.no_registration_error(message)
 
             elif new_msg in ['/trustme', 'подтвердить встречу']:
-                if current_user.reg_status:
+                get_curr_user_1(user_id)
+                if user_1.reg_status:
                     confirmation_funcs.approve_conf(message)
-                elif not current_user.reg_status:
+                elif not user_1.reg_status:
                     error_funcs.no_registration_error(message)
 
             # Command is not recognized
