@@ -20,7 +20,9 @@ with sq.connect('db/users.db') as con:
       )''')
     con.commit()
 
-    # Create confirms db if not exists
+# Create confirms db if not exists
+with sq.connect('db/users.db') as con:
+    cur = con.cursor()
 
     cur.execute('''CREATE TABLE IF NOT EXISTS confirms (
         user_id INTEGER,
@@ -31,6 +33,8 @@ with sq.connect('db/users.db') as con:
         )''')
     con.commit()
 
+with sq.connect('db/users.db') as con:
+    cur = con.cursor()
     cur.execute('''CREATE TABLE IF NOT EXISTS statistics (
         func_name TEXT,
         all_usages INTEGER DEFAULT 0,
@@ -60,6 +64,50 @@ def get_curr_user_1(user_id):
                 user_1.arr_code = i[3]
         elif len(pack) == 0:
             user_1.reg_status = False
+
+
+def check_password(message):
+    # Open file
+    admin_pass_file_name = 'admin_pswd.txt'
+    admin_pass_file = open(admin_pass_file_name, 'r')
+
+    # Get password from file
+    admin_pass = admin_pass_file.read()
+
+    # Close file
+    admin_pass_file.close()
+
+    # Check if its correct
+    if message.text == admin_pass:
+        admin_stats(message)
+    else:
+        bot.send_message(message.chat.id, 'Wrong. Exit')
+
+
+def admin_stats(message):
+    try:
+        # Save user's message data
+        chat_id = message.chat.id
+
+        # Connect to db
+        con = sq.connect('db/users.db')
+        cur = con.cursor()
+
+        # Collect data
+        cur.execute('SELECT count(user_id) FROM users')
+        users_num = cur.fetchone()[0]
+
+        cur.execute('SELECT count(*) FROM confirms')
+        confirms_num = cur.fetchone()[0]
+
+        # Close connection
+        con.close()
+
+        # Send data
+        bot.send_message(message.chat.id, 'Users: {0}\nConfirms: {1}'.format(users_num, confirms_num))
+
+    except:
+        error_funcs.other_error(message)
 
 
 def listener(messages):
@@ -159,7 +207,7 @@ def listener(messages):
             # Admin
             elif new_msg == '/admin':
                 password = bot.send_message(chat_id, 'Password?')
-                bot.register_next_step_handler(password, statistic_funcs.check_password)
+                bot.register_next_step_handler(password, check_password)
 
             # Command is not recognized
             else:
