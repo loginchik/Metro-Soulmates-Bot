@@ -102,7 +102,6 @@ def listener(messages):
                 get_curr_user_1(user_id)
                 if not user_1.reg_status:
                     account_funcs.get_basic_step(message)
-                    statistic_funcs.write_stats('/register')
                 elif user_1.reg_status:
                     error_funcs.user_exists_error(message)
 
@@ -125,7 +124,6 @@ def listener(messages):
                 get_curr_user_1(user_id)
                 if user_1.reg_status:
                     account_funcs.delete_account(message)
-                    statistic_funcs.write_stats('/deleteaccount')
                 elif not user_1.reg_status:
                     error_funcs.no_registration_error(message)
 
@@ -134,7 +132,6 @@ def listener(messages):
                 get_curr_user_1(user_id)
                 if user_1.reg_status:
                     soulmates_search_funcs.main_find_souls(message=message, user_class=user_1, user_id=user_id)
-                    statistic_funcs.write_stats('/soulssearch')
                 else:
                     error_funcs.no_registration_error(message)
 
