@@ -85,7 +85,7 @@ def get_soul_nick(message):
     # Split potential nick into letters
     list_soul_nick = []
     for i in got_soul_nick:
-        list_soul_nick.append(i)
+        list_soul_nick.append(i.lower())
 
     # Check if it starts with @
     if list_soul_nick[0] == '@':

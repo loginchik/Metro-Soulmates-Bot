@@ -6,6 +6,14 @@ from functions_fold import error_funcs
 bot = consts.bot
 
 
+def lower_text(text):
+    letters = []
+    for letter in text:
+        letters.append(letter.lower())
+    refactored_text = ''.join(letters)
+    return refactored_text
+
+
 # ----- Register new user -----
 
 # Func identifies number of a way given by user
@@ -16,10 +24,12 @@ def identify_way(message):
         return way
     except:
         # If it's a MCD way, this will work
-        if str(message.text) in ['МЦД 1', 'мцд 1']:
+        answer = lower_text(message.text)
+
+        if answer == 'мцд 1':
             way = 21
             return way
-        elif str(message.text) in ['МЦД 2', 'мцд 2']:
+        elif answer == 'мцд 2':
             way = 22
             return way
 
@@ -119,8 +129,8 @@ def get_basic_step(message):
 
         # Save data for loading to db
         user_id = int(message.from_user.id)
-        name = str(message.from_user.first_name).lower()
-        nickname = str(message.from_user.username).lower()
+        name = lower_text(message.from_user.first_name)
+        nickname = lower_text(message.from_user.username)
 
         # Load data to db
         with sq.connect('db/users.db') as con:
@@ -144,7 +154,7 @@ def get_dep_step(message):
         user_id = message.from_user.id
 
         # Save departure station name into variable
-        dep_name = str(message.text).lower()
+        dep_name = lower_text(message.text)
 
         # Count stations with the same name
         stats_num_cur = check_stat_exists_by_name(dep_name)
@@ -227,7 +237,7 @@ def get_arr(message):
         user_id = message.from_user.id
 
         # Save the name of arrival station
-        arr_name = str(message.text).lower()
+        arr_name = lower_text(message.text)
 
         # Count stations with the same name
         stats_num_cur = check_stat_exists_by_name(arr_name)
@@ -310,7 +320,7 @@ def del_confirm(message, user_id):
     if message.content_type == 'text':
 
         # Save decision
-        decision = str(message.text).lower()
+        decision = lower_text(message.text)
 
         # Decision is positive
         if decision == 'да':
@@ -462,7 +472,7 @@ def change_name(message):
         user_id = message.from_user.id
 
         # Save new name into variable
-        new_name = str(message.text).lower()
+        new_name = lower_text(message.text)
 
         # Load new data to db
         with sq.connect('db/users.db') as con:
@@ -480,7 +490,7 @@ def change_name(message):
 # Func updates nickname in db
 def update_nickname(message, user_id):
     # Get new nick from TG data
-    new_nick = message.from_user.username
+    new_nick = lower_text(message.from_user.username)
 
     # Connect to db
     con = sq.connect('db/users.db')
@@ -505,7 +515,7 @@ def change_dep(message):
         chat_id = message.chat.id
 
         # Save new departure station's name
-        new_dep_name = str(message.text).lower()
+        new_dep_name = lower_text(message.text)
 
         # Get the number if station with this name
         stats_num = check_stat_exists_by_name(new_dep_name)
@@ -588,7 +598,7 @@ def change_arr(message):
         chat_id = message.chat.id
 
         # Save new arrival station's name
-        new_arr_name = str(message.text).lower()
+        new_arr_name = lower_text(message.text)
 
         # Get the number of stations with this name
         stats_num = check_stat_exists_by_name(station_name=new_arr_name)
@@ -687,7 +697,7 @@ def forward_to_func_step(message):
         if message.content_type == 'text':
 
             # Save decision
-            msg = str(message.text).lower()
+            msg = lower_text(message.text)
 
             # Change name
             if msg == 'имя':
