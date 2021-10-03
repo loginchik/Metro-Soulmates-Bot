@@ -1,7 +1,7 @@
 import sqlite3 as sq
 import consts
 from functions_fold import about_funcs, account_funcs, help_funcs, soulmates_search_funcs, \
-    confirmation_funcs, error_funcs, faq_funcs
+    confirmation_funcs, error_funcs, faq_funcs, statistic_funcs
 
 bot = consts.bot
 user_1 = consts.user
@@ -20,9 +20,7 @@ with sq.connect('db/users.db') as con:
       )''')
     con.commit()
 
-# Create confirms db if not exists
-with sq.connect('db/users.db') as con:
-    cur = con.cursor()
+    # Create confirms db if not exists
 
     cur.execute('''CREATE TABLE IF NOT EXISTS confirms (
         user_id INTEGER,
@@ -31,6 +29,15 @@ with sq.connect('db/users.db') as con:
         file TEXT,
         authorized INTEGER DEFAULT 0
         )''')
+    con.commit()
+
+    cur.execute('''CREATE TABLE IF NOT EXISTS statistics (
+        func_name TEXT,
+        all_usages INTEGER DEFAULT 0,
+        today_usages INTEGER DEFAULT 0,
+        last_update TEXT
+        )''')
+    con.commit()
 
 
 # Func gets current user info from db
@@ -53,50 +60,6 @@ def get_curr_user_1(user_id):
                 user_1.arr_code = i[3]
         elif len(pack) == 0:
             user_1.reg_status = False
-
-
-def check_password(message):
-    # Open file
-    admin_pass_file_name = 'admin_pswd.txt'
-    admin_pass_file = open(admin_pass_file_name, 'r')
-
-    # Get password from file
-    admin_pass = admin_pass_file.read()
-
-    # Close file
-    admin_pass_file.close()
-
-    # Check if its correct
-    if message.text == admin_pass:
-        admin_stats(message)
-    else:
-        bot.send_message(message.chat.id, 'Wrong. Exit')
-
-
-def admin_stats(message):
-    try:
-        # Save user's message data
-        chat_id = message.chat.id
-
-        # Connect to db
-        con = sq.connect('db/users.db')
-        cur = con.cursor()
-
-        # Collect data
-        cur.execute('SELECT count(user_id) FROM users')
-        users_num = cur.fetchone()[0]
-
-        cur.execute('SELECT count(*) FROM confirms')
-        confirms_num = cur.fetchone()[0]
-
-        # Close connection
-        con.close()
-
-        # Send data
-        bot.send_message(message.chat.id, 'Users: {0}\nConfirms: {1}'.format(users_num, confirms_num))
-
-    except:
-        error_funcs.other_error(message)
 
 
 def listener(messages):
@@ -139,6 +102,7 @@ def listener(messages):
                 get_curr_user_1(user_id)
                 if not user_1.reg_status:
                     account_funcs.get_basic_step(message)
+                    statistic_funcs.write_stats('/register')
                 elif user_1.reg_status:
                     error_funcs.user_exists_error(message)
 
@@ -161,6 +125,7 @@ def listener(messages):
                 get_curr_user_1(user_id)
                 if user_1.reg_status:
                     account_funcs.delete_account(message)
+                    statistic_funcs.write_stats('/deleteaccount')
                 elif not user_1.reg_status:
                     error_funcs.no_registration_error(message)
 
@@ -169,6 +134,7 @@ def listener(messages):
                 get_curr_user_1(user_id)
                 if user_1.reg_status:
                     soulmates_search_funcs.main_find_souls(message=message, user_class=user_1, user_id=user_id)
+                    statistic_funcs.write_stats('/soulssearch')
                 else:
                     error_funcs.no_registration_error(message)
 
@@ -196,7 +162,7 @@ def listener(messages):
             # Admin
             elif new_msg == '/admin':
                 password = bot.send_message(chat_id, 'Password?')
-                bot.register_next_step_handler(password, check_password)
+                bot.register_next_step_handler(password, statistic_funcs.check_password)
 
             # Command is not recognized
             else:
