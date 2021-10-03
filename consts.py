@@ -147,8 +147,8 @@ not_registered_markup.one_time_keyboard = True
 
 basic_markup = types.ReplyKeyboardMarkup()
 
-viewaccount_btn = types.KeyboardButton(text='Посмотреть\nпрофиль')
-editaccount_btn = types.KeyboardButton(text='Редактировать\nпрофиль')
+viewaccount_btn = types.KeyboardButton(text='Посмотреть профиль')
+editaccount_btn = types.KeyboardButton(text='Редактировать профиль')
 searchsouls_btn = types.KeyboardButton(text='Найти соула')
 confirm_btn = types.KeyboardButton(text='Мы встретились')
 trustme_btn = types.KeyboardButton(text='Подтвердить встречу')
@@ -159,3 +159,12 @@ basic_markup.row(searchsouls_btn)
 basic_markup.row(confirm_btn, trustme_btn)
 
 basic_markup.one_time_keyboard = True
+
+# Yes or no markup
+yn_markup = types.ReplyKeyboardMarkup()
+
+yes_btn = types.KeyboardButton(text='Да')
+no_btn = types.KeyboardButton(text='Нет')
+
+yn_markup.row(yes_btn, no_btn)
+yn_markup.one_time_keyboard = True

@@ -375,7 +375,7 @@ def send_unapproved_num(message):
             # Means that user hasn't met anyone or has approved all the meetings
 
             # Send result
-            bot.send_message(chat_id, text=consts.no_unapproved_text)
+            bot.send_message(chat_id, text=consts.no_unapproved_text, reply_markup=consts.basic_markup)
 
         else:
             # If unapproved_num != 0
@@ -459,7 +459,7 @@ def approve_conf(message):
                                                                        )
 
             # Send message asking for approval
-            approval = bot.send_message(chat_id, text=text)
+            approval = bot.send_message(chat_id, text=text, reply_markup=consts.yn_markup)
 
             # Follow next step (work with approval)
             bot.register_next_step_handler(approval, get_approval, confirmation_class)
