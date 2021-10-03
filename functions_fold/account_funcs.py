@@ -636,7 +636,7 @@ def change_arr_few_stations(message, station_name):
         new_arr_name = station_name
 
         # Check if station exists
-        exists = check_stat_exists_by_way_name(way=new_arr_name, name=new_arr_name)
+        exists = check_stat_exists_by_way_name(way=new_arr_way, name=new_arr_name)
 
         if exists:
 
