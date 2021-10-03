@@ -464,5 +464,8 @@ def approve_conf(message):
             # Follow next step (work with approval)
             bot.register_next_step_handler(approval, get_approval, confirmation_class)
 
+        else:
+            bot.send_message(chat_id, text=consts.no_unapproved_text)
+
     except:
         error_funcs.other_error(message)
