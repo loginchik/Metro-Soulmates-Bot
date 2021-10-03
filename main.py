@@ -6,7 +6,7 @@ from functions_fold import about_funcs, account_funcs, help_funcs, soulmates_sea
     confirmation_funcs, error_funcs, faq_funcs
 
 bot = consts.bot
-user = consts.user
+current_user = consts.user
 
 # Create users db if not exists
 with sq.connect('db/users.db') as con:
@@ -37,7 +37,7 @@ with sq.connect('db/users.db') as con:
 
 # Func gets current user info from db
 def get_current_user(user_id):
-    global user
+    global current_user
 
     # Connect to db
     con = sq.connect('db/users.db')
@@ -54,13 +54,13 @@ def get_current_user(user_id):
 
     # Change reg_status
     if pack_len == 0:
-        user.reg_status = False
+        current_user.reg_status = False
 
     elif pack_len > 0:
-        user.reg_status = True
+        current_user.reg_status = True
 
     # If registered, get info about the user
-    if user.reg_status:
+    if current_user.reg_status:
 
         # Connect to db
         con = sq.connect('db/users.db')
@@ -74,18 +74,17 @@ def get_current_user(user_id):
         con.close()
 
         # Load data into class
-        user.name = user_info[0]
-        user.nickname = user_info[1]
-        user.dep_code = user_info[2]
-        user.arr_code = user_info[3]
+        current_user.name = user_info[0]
+        current_user.nickname = user_info[1]
+        current_user.dep_code = user_info[2]
+        current_user.arr_code = user_info[3]
 
     else:
         pass
 
-    return user
-
 
 def listener(messages):
+    global current_user
     for message in messages:
 
         # Save user's message data
@@ -93,7 +92,6 @@ def listener(messages):
         user_id = message.chat.id
 
         if message.content_type == 'text':
-            current_user = get_current_user(user_id)
             new_msg = str(message.text).lower()
 
             # Registration is not required
@@ -141,7 +139,7 @@ def listener(messages):
             elif new_msg in ['/soulssearch', 'поиск попутчиков', 'искать попутчиков', 'найти попутчиков',
                              'найти соула', 'поиск соула', 'искать соула']:
                 if current_user.reg_status:
-                    soulmates_search_funcs.main_find_souls(message=message, user_class=user, user_id=user_id)
+                    soulmates_search_funcs.main_find_souls(message=message, user_class=current_user, user_id=user_id)
                 else:
                     error_funcs.no_registration_error(message)
 
