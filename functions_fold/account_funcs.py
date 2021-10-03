@@ -605,7 +605,9 @@ def change_arr(message):
 
         if stats_num == 0:
             # Means that the name is wrong of station is not in db
-            error_funcs.no_station_found(message)
+            # error_funcs.no_station_found(message)
+            bot.send_message(chat_id, 'Что-то пошло не так, попробуйте еще раз')
+            return
 
         elif stats_num == 1:
             # Means that there is the only station with this name
