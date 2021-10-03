@@ -64,7 +64,7 @@ def listener(messages):
         user_id = message.chat.id
 
         if message.content_type == 'text':
-            new_msg = str(message.text).lower()
+            new_msg = account_funcs.lower_text(message.text)
 
             # Registration is not required
             if new_msg in ['/help', 'помощь', '/start']:
