@@ -141,20 +141,21 @@ faq_btn = types.KeyboardButton(text='FAQ')
 not_registered_markup.row(register_btn)
 not_registered_markup.row(help_btn, faq_btn)
 
+not_registered_markup.one_time_keyboard = True
+
 # Basic markup
 
 basic_markup = types.ReplyKeyboardMarkup()
 
-viewaccount_btn = types.KeyboardButton(text='Посмотреть профиль')
-editaccount_btn = types.KeyboardButton(text='Редактировать профиль')
+viewaccount_btn = types.KeyboardButton(text='Посмотреть\nпрофиль')
+editaccount_btn = types.KeyboardButton(text='Редактировать\nпрофиль')
 searchsouls_btn = types.KeyboardButton(text='Найти соула')
 confirm_btn = types.KeyboardButton(text='Мы встретились')
 trustme_btn = types.KeyboardButton(text='Подтвердить встречу')
 help_btn = types.KeyboardButton(text='Помощь')
 
-basic_markup.row(viewaccount_btn, editaccount_btn)
+basic_markup.row(help_btn, viewaccount_btn, editaccount_btn)
 basic_markup.row(searchsouls_btn)
 basic_markup.row(confirm_btn, trustme_btn)
-basic_markup.row(help_btn)
 
 basic_markup.one_time_keyboard = True

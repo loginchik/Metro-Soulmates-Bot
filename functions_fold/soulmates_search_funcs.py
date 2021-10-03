@@ -425,7 +425,7 @@ def main_find_souls(message, user_class, user_id):
             # Send notification that no souls are found
             elif not exist:
                 bot.send_message(chat_id, text=consts.no_souls_found_text)
-                bot.send_sticker(chat_id, data=consts.sad_sticker)
+                bot.send_sticker(chat_id, data=consts.sad_sticker, reply_markup=consts.basic_markup)
 
             # Work with errors
             elif exist == 'error':
