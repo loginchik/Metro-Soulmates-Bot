@@ -332,15 +332,26 @@ def get_soul_info(soul_id):
     soul.arr_code = info_package[3]
     soul.stars = info_package[4]
 
+    with sq.connect('db/metro.db') as con:
+        cur = con.cursor()
+        cur.execute('SELECT name FROM stations_coo WHERE code=?', (soul.dep_code,))
+        soul.dep_name = cur.fetchone()[0]
+
     # Get info about departure station
     dep_info = get_way_number_from_code(soul.dep_code)
     soul.dep_way = dep_info[0]
-    soul.dep_name = dep_info[1]
+    with sq.connect('db/metro.db') as con:
+        cur = con.cursor()
+        cur.execute('SELECT name FROM stations_coo WHERE code=?', (soul.dep_code,))
+        soul.dep_name = cur.fetchone()[0]
 
     # Get info about arrival station
     arr_info = get_way_number_from_code(soul.arr_code)
     soul.arr_way = arr_info[0]
-    soul.arr_name = arr_info[1]
+    with sq.connect('db/metro.db') as con:
+        cur = con.cursor()
+        cur.execute('SELECT name FROM stations_coo WHERE code=?', (soul.arr_code,))
+        soul.arr_name = cur.fetchone()[0]
 
     # Return soul class
     return soul

@@ -735,6 +735,9 @@ def forward_to_func_step(message):
                 # Follow next step (change arrival station in db and send confirmation)
                 bot.register_next_step_handler(new_arr, change_arr)
 
+            else:
+                error_funcs.ununderstandable_text(message)
+
         else:
             error_funcs.not_text_error(message)
 
