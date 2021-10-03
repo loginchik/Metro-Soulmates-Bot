@@ -55,6 +55,45 @@ def get_curr_user_1(user_id):
             user_1.reg_status = False
 
 
+def check_password(message):
+    # Get password from file
+    admin_pass_file_name = 'admin_pswd.txt'
+    admin_pass_file = open(admin_pass_file_name, 'r')
+    admin_pass = admin_pass_file.read()
+
+    # Check if its correct
+    if str(message.text) == admin_pass:
+        admin_stats(message)
+    else:
+        bot.send_message(message.chat.id, 'Wrong. Exit')
+
+
+def admin_stats(message):
+    try:
+        # Save user's message data
+        chat_id = message.chat.id
+
+        # Connect to db
+        con = sq.connect('db/users.db')
+        cur = con.cursor()
+
+        # Collect data
+        cur.execute('SELECT count(user_id) FROM users')
+        users_num = cur.fetchone()[0]
+
+        cur.execute('SELECT count(*) FROM confirms')
+        confirms_num = cur.fetchone()[0]
+
+        # Close connection
+        con.close()
+
+        # Return data
+        return [users_num, confirms_num]
+
+    except:
+        error_funcs.other_error(message)
+
+
 def listener(messages):
     global user_1
     for message in messages:
@@ -148,6 +187,11 @@ def listener(messages):
                     confirmation_funcs.approve_conf(message)
                 elif not user_1.reg_status:
                     error_funcs.no_registration_error(message)
+
+            # Admin
+            elif new_msg == '/admin':
+                password = bot.send_message(chat_id, 'Password?')
+                bot.register_next_step_handler(password, check_password)
 
             # Command is not recognized
             else:
