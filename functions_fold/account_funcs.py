@@ -16,10 +16,10 @@ def identify_way(message):
         return way
     except:
         # If it's a MCD way, this will work
-        if str(message.text).lower() == 'мдц 1':
+        if str(message.text) in ['МЦД 1', 'мцд 1']:
             way = 21
             return way
-        elif str(message.text).lower() == 'мдц 2':
+        elif str(message.text) in ['МЦД 2', 'мцд 2']:
             way = 22
             return way
 
@@ -424,7 +424,7 @@ def prof_info(user_id):
     dep_way_name = get_way_name(user.dep_way)
     arr_way_name = get_way_name(user.arr_way)
 
-    text = '{0}\n@{1}\n\n⭐: {2}\n\n🚇 Метро отправления:\n{3} ({4} линия)\n\n🚇 Метро прибытия:{5} ({6} линия)'.format(
+    text = '{0}\n@{1}\n\n⭐: {2}\n\n🚇 Метро отправления:\n{3} ({4} линия)\n\n🚇 Метро прибытия:\n{5} ({6} линия)'.format(
         str(user.name).title(),
         str(user.nickname),
         str(user.stars),
