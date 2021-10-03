@@ -5,25 +5,6 @@ import error_funcs
 from consts import bot
 
 
-# Func checks password and, if right, forwards to the next func
-def check_password(message):
-    # Open file
-    admin_pass_file_name = '../admin_pswd.txt'
-    admin_pass_file = open(admin_pass_file_name, 'r')
-
-    # Get password from file
-    admin_pass = admin_pass_file.read()
-
-    # Close file
-    admin_pass_file.close()
-
-    # Check if its correct
-    if message.text == admin_pass:
-        admin_stats(message)
-    else:
-        bot.send_message(message.chat.id, 'Wrong. Exit')
-
-
 # Func leads all the statistic collecting and saving process
 def admin_stats(message):
     try:
@@ -51,49 +32,51 @@ def admin_stats(message):
         all_conf_num = conf_list[0]
         today_conf_num = conf_list[1]
 
-        # Collect stats from db
-        with sq.connect('db/users.db') as con:
-            cur = con.cursor()
+        # # Collect stats from db
+        # with sq.connect('db/users.db') as con:
+        #     cur = con.cursor()
+        #
+        #     cur.execute('SELECT all_usages, today_usages FROM statistics WHERE func_name = ?', ('/soulssearch',))
+        #     soulssearch_stats_pack = cur.fetchone()
+        #
+        #     cur.execute('SELECT all_usages, today_usages FROM statistics WHERE func_name = ?', ('/register',))
+        #     register_stats_pack = cur.fetchone()
+        #
+        #     cur.execute('SELECT all_usages, today_usages FROM statistics WHERE func_name = ?', ('/deleteaccount',))
+        #     deleteaccount_stats_pack = cur.fetchone()
+        #
+        # # Unpack collected statistics
+        # soulssearch_all = soulssearch_stats_pack[0]
+        # soulsearch_today = soulssearch_stats_pack[1]
+        #
+        # register_all = register_stats_pack[0]
+        # register_today = register_stats_pack[1]
+        #
+        # deleteaccount_all = deleteaccount_stats_pack[0]
+        # deleteaccount_today = deleteaccount_stats_pack[1]
+        #
+        # # Generate text
+        # text = 'Users: {0}\n\nConfirms: {1}\nToday: {2}' \
+        #        '\n\nCommands statistics' \
+        #        '\n\nregister' \
+        #        '\nall: {3}' \
+        #        '\ntoday: {4}' \
+        #        '\n\nsoulssearch' \
+        #        '\nall: {5}' \
+        #        '\ntoday: {6}' \
+        #        '\n\ndeleteaccount' \
+        #        '\nall: {7}' \
+        #        '\ntoday: {8}'.format(str(users_num),
+        #                              str(all_conf_num),
+        #                              str(today_conf_num),
+        #                              str(register_all),
+        #                              str(register_today),
+        #                              str(soulssearch_all),
+        #                              str(soulsearch_today),
+        #                              str(deleteaccount_all),
+        #                              str(deleteaccount_today))
 
-            cur.execute('SELECT all_usages, today_usages FROM statistics WHERE func_name = ?', ('/soulssearch',))
-            soulssearch_stats_pack = cur.fetchone()
-
-            cur.execute('SELECT all_usages, today_usages FROM statistics WHERE func_name = ?', ('/register',))
-            register_stats_pack = cur.fetchone()
-
-            cur.execute('SELECT all_usages, today_usages FROM statistics WHERE func_name = ?', ('/deleteaccount',))
-            deleteaccount_stats_pack = cur.fetchone()
-
-        # Unpack collected statistics
-        soulssearch_all = soulssearch_stats_pack[0]
-        soulsearch_today = soulssearch_stats_pack[1]
-
-        register_all = register_stats_pack[0]
-        register_today = register_stats_pack[1]
-
-        deleteaccount_all = deleteaccount_stats_pack[0]
-        deleteaccount_today = deleteaccount_stats_pack[1]
-
-        # Generate text
-        text = 'Users: {0}\n\nConfirms: {1}\nToday: {2}' \
-               '\n\nCommands statistics' \
-               '\n\nregister' \
-               '\nall: {3}' \
-               '\ntoday: {4}' \
-               '\n\nsoulssearch' \
-               '\nall: {5}' \
-               '\ntoday: {6}' \
-               '\n\ndeleteaccount' \
-               '\nall: {7}' \
-               '\ntoday: {8}'.format(str(users_num),
-                                     str(all_conf_num),
-                                     str(today_conf_num),
-                                     str(register_all),
-                                     str(register_today),
-                                     str(soulssearch_all),
-                                     str(soulsearch_today),
-                                     str(deleteaccount_all),
-                                     str(deleteaccount_today))
+        text = 'Users: {0}\n\nConfirms: {1}\nToday: {2}'.format(str(users_num), str(all_conf_num), str(today_conf_num))
 
         # Send statistics to admin
         bot.send_message(chat_id, text)

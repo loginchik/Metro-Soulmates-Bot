@@ -1,7 +1,7 @@
 import sqlite3 as sq
 import consts
 from functions_fold import about_funcs, account_funcs, help_funcs, soulmates_search_funcs, \
-    confirmation_funcs, error_funcs, faq_funcs
+    confirmation_funcs, error_funcs, faq_funcs, statistic_funcs
 
 bot = consts.bot
 user_1 = consts.user
@@ -32,6 +32,25 @@ with sq.connect('db/users.db') as con:
         authorized INTEGER DEFAULT 0
         )''')
     con.commit()
+
+
+# Func checks password and, if right, forwards to the next func
+def check_password(message):
+    # Open file
+    admin_pass_file_name = 'admin_pswd.txt'
+    admin_pass_file = open(admin_pass_file_name, 'r')
+
+    # Get password from file
+    admin_pass = admin_pass_file.read()
+
+    # Close file
+    admin_pass_file.close()
+
+    # Check if its correct
+    if message.text == admin_pass:
+        statistic_funcs.admin_stats(message)
+    else:
+        bot.send_message(message.chat.id, 'Wrong. Exit')
 
 
 # Func gets current user info from db
@@ -149,6 +168,11 @@ def listener(messages):
                     confirmation_funcs.approve_conf(message)
                 elif not user_1.reg_status:
                     error_funcs.no_registration_error(message)
+
+            # Admin
+            elif new_msg == '/admin':
+                user_pwd = bot.send_message(chat_id, 'Password?')
+                bot.register_next_step_handler(user_pwd, check_password)
 
             # Command is not recognized
             else:
