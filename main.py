@@ -56,10 +56,15 @@ def get_curr_user_1(user_id):
 
 
 def check_password(message):
-    # Get password from file
+    # Open file
     admin_pass_file_name = 'admin_pswd.txt'
     admin_pass_file = open(admin_pass_file_name, 'r')
+
+    # Get password from file
     admin_pass = admin_pass_file.read()
+
+    # Close file
+    admin_pass_file.close()
 
     # Check if its correct
     if message.text == admin_pass:
