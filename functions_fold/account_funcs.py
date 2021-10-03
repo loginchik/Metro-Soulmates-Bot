@@ -79,7 +79,7 @@ def send_few_stations_warning(chat_id):
     bot.send_message(chat_id, consts.few_stations_warning_first_text)
     with open('metroways.png', 'rb') as img:
         way_num = bot.send_photo(chat_id, photo=img)
-    bot.send_message(chat_id, consts.few_stations_warning_second_text)
+    bot.send_message(chat_id, consts.few_stations_warning_second_text, reply_markup=consts.ways_markup)
 
     # Returns a message for next steps
     return way_num

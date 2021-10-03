@@ -179,3 +179,12 @@ no_btn = types.KeyboardButton(text='Нет')
 
 yn_markup.row(yes_btn, no_btn)
 yn_markup.one_time_keyboard = True
+
+# Choose way markup
+ways_markup = types.ReplyKeyboardMarkup()
+
+ways_markup.row('1', '2', '3', '4', '5', '6', '7', '8')
+ways_markup.row('9', '10', '11', '12', '13', '14', '15')
+ways_markup.row('МЦД 1', 'МЦД 2')
+
+ways_markup.one_time_keyboard = True
