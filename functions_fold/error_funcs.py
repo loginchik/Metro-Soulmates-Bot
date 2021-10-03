@@ -1,7 +1,6 @@
 from consts import bot
 import consts
 
-error_sticker = 'CAACAgIAAxkBAAEC7YxhRlfXHvsef8cgeKq8wiEhRnGjKgACqg0AAuODiUjd0_CDy4ej6yAE'
 
 def not_text_error(message):
     chat_id = message.chat.id
@@ -31,7 +30,7 @@ def no_func_error(message):
     chat_id = message.chat.id
     text = consts.no_func_text
     bot.send_message(chat_id, text)
-    bot.send_sticker(chat_id, data=error_sticker)
+    bot.send_sticker(chat_id, data=consts.error_sticker)
 
 
 def ununderstandable_text(message):
@@ -42,13 +41,13 @@ def ununderstandable_text(message):
 def no_station_found(message):
     text = consts.no_station_error_text
     bot.reply_to(message, text)
-    bot.send_sticker(message.chat.id, data=error_sticker)
+    bot.send_sticker(message.chat.id, data=consts.error_sticker)
 
 
 def no_station_on_way_found(message):
     text = consts.few_ways_no_station_text
     bot.reply_to(message, text)
-    bot.send_sticker(message.chat.id, data=error_sticker)
+    bot.send_sticker(message.chat.id, data=consts.error_sticker)
 
 
 def not_nick_sent(message):

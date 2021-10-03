@@ -112,4 +112,4 @@ soul_is_not_reg_text = 'Похоже, что ваш соул не зарегис
 
 # ---- Stickers -----
 sad_sticker = 'CAACAgIAAxkBAAEC7aBhRl4U7rzGDaMoAWDhP1f3AutOOgACaBEAAkAwiUtLxBKN7HrbtiAE'
-error_sticker = ''
+error_sticker = 'CAACAgIAAxkBAAEC7YxhRlfXHvsef8cgeKq8wiEhRnGjKgACqg0AAuODiUjd0_CDy4ej6yAE'
