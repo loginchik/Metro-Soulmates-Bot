@@ -330,7 +330,7 @@ def del_confirm(message, user_id):
 
                 # Send account deleted confirmation messages
                 bot.send_message(chat_id, text=consts.acc_del_conf_text)
-                bot.send_message(chat_id, text=consts.goodbye_text)
+                bot.send_message(chat_id, text=consts.goodbye_text, reply_markup=consts.not_registered_markup)
             except:
                 error_funcs.other_error(message)
 
@@ -457,7 +457,7 @@ def view_acc_func(message):
         text = prof_info(user_id)
 
         # Send user's profile information
-        bot.send_message(chat_id, text=text)
+        bot.send_message(chat_id, text=text, reply_markup=consts.basic_markup)
 
     except:
         error_funcs.other_error(message)

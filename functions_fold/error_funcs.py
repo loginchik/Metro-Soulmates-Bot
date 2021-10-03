@@ -17,13 +17,13 @@ def other_error(message):
 def no_registration_error(message):
     chat_id = message.chat.id
     text = consts.no_registration_error_text
-    bot.send_message(chat_id, text)
+    bot.send_message(chat_id, text, reply_markup=consts.not_registered_markup)
 
 
 def user_exists_error(message):
     chat_id = message.chat.id
     text = consts.acc_exists_text
-    bot.send_message(chat_id, text)
+    bot.send_message(chat_id, text, reply_markup=consts.basic_markup)
 
 
 def no_func_error(message):
@@ -41,13 +41,13 @@ def ununderstandable_text(message):
 def no_station_found(message):
     text = consts.no_station_error_text
     bot.reply_to(message, text)
-    bot.send_sticker(message.chat.id, data=consts.error_sticker)
+    bot.send_sticker(message.chat.id, data=consts.error_sticker, reply_markup=consts.basic_markup)
 
 
 def no_station_on_way_found(message):
     text = consts.few_ways_no_station_text
     bot.reply_to(message, text)
-    bot.send_sticker(message.chat.id, data=consts.error_sticker)
+    bot.send_sticker(message.chat.id, data=consts.error_sticker, reply_markup=consts.basic_markup)
 
 
 def not_nick_sent(message):

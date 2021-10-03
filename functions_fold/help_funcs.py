@@ -26,7 +26,7 @@ second_help_text = '*Вместо некоторых команд вы може�
                    '\n«подтвердить встречу» — вместо /trustme'
 
 
-def help_func(message):
+def help_func(message, markup):
     chat_id = message.chat.id
     bot.send_message(chat_id, text=first_help_text, parse_mode='MarkdownV2')
-    bot.send_message(chat_id, text=second_help_text, parse_mode='MarkdownV2')
+    bot.send_message(chat_id, text=second_help_text, parse_mode='MarkdownV2', reply_markup=markup)

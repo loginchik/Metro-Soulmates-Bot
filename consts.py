@@ -1,7 +1,9 @@
 import logging
+
 import telebot
-import classes
 from telebot import types
+
+import classes
 
 # consts
 with open('token.txt', 'r') as tgtoken:
@@ -84,6 +86,8 @@ no_unapproved_text = 'У вас нет неподтвержденных встр
 
 conf_not_suitable_format_text = 'Кажется, вы прислали не тот формат(('
 
+conf_reminder_text = 'Когда встретитесь со своим соулом, не забудьте отправить отчет об этом\n\n{0}'.format('/confirm')
+
 # ------ Errors ------
 
 no_func_text = 'К сожалению, эта функция еще разрабатывается и недоступна в данный момент'
@@ -138,4 +142,19 @@ not_registered_markup.row(register_btn)
 not_registered_markup.row(help_btn, faq_btn)
 
 # Basic markup
+
 basic_markup = types.ReplyKeyboardMarkup()
+
+viewaccount_btn = types.KeyboardButton(text='Посмотреть профиль')
+editaccount_btn = types.KeyboardButton(text='Редактировать профиль')
+searchsouls_btn = types.KeyboardButton(text='Найти соула')
+confirm_btn = types.KeyboardButton(text='Мы встретились')
+trustme_btn = types.KeyboardButton(text='Подтвердить встречу')
+help_btn = types.KeyboardButton(text='Помощь')
+
+basic_markup.row(viewaccount_btn, editaccount_btn)
+basic_markup.row(searchsouls_btn)
+basic_markup.row(confirm_btn, trustme_btn)
+basic_markup.row(help_btn)
+
+basic_markup.one_time_keyboard = True

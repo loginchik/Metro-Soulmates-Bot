@@ -215,7 +215,7 @@ def get_conf(message, confirmation_class):
                 write_conf(confirmation_class)
 
                 # Send confirmation successful notification
-                bot.send_message(chat_id, text=consts.conf_success_text)
+                bot.send_message(chat_id, text=consts.conf_success_text, reply_markup=consts.basic_markup)
 
             # Photo confirmation
             elif message.content_type == 'photo':
@@ -231,7 +231,7 @@ def get_conf(message, confirmation_class):
                 write_conf(confirmation_class)
 
                 # Send confirmation is successful notification
-                bot.send_message(chat_id, text=consts.conf_success_text)
+                bot.send_message(chat_id, text=consts.conf_success_text, reply_markup=consts.basic_markup)
 
             # Video confirmation
             elif message.content_type == 'video_note':
@@ -247,7 +247,7 @@ def get_conf(message, confirmation_class):
                 write_conf(confirmation_class)
 
                 # Send confirmation is successful notification
-                bot.send_message(chat_id, text=consts.conf_success_text)
+                bot.send_message(chat_id, text=consts.conf_success_text, reply_markup=consts.basic_markup)
 
             # Not suitable format
             else:
@@ -389,7 +389,7 @@ def send_unapproved_num(message):
 
             # Send text
             else:
-                bot.send_message(chat_id, text)
+                bot.send_message(chat_id, text, reply_markup=consts.basic_markup)
 
     except:
         error_funcs.other_error(message)

@@ -68,11 +68,23 @@ def listener(messages):
 
             # Registration is not required
             if new_msg in ['/help', 'помощь', '/start']:
-                help_funcs.help_func(message)
+                if user_1.reg_status:
+                    markup = consts.basic_markup
+                else:
+                    markup = consts.not_registered_markup
+                help_funcs.help_func(message, markup)
             elif new_msg == '/about':
-                about_funcs.about_func(message)
+                if user_1.reg_status:
+                    markup = consts.basic_markup
+                else:
+                    markup = consts.not_registered_markup
+                about_funcs.about_func(message, markup)
             elif new_msg in ['/faq', 'faq']:
-                faq_funcs.send_faq(message)
+                if user_1.reg_status:
+                    markup = consts.basic_markup
+                else:
+                    markup = consts.not_registered_markup
+                faq_funcs.send_faq(message, markup)
 
             # Not developed
             elif new_msg == '/report':

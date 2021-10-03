@@ -419,6 +419,9 @@ def main_find_souls(message, user_class, user_id):
                     soul_info = get_soul_info(soul_id=soul)
                     send_soul_info(soul_info, chat_id)
 
+                # Send reminder about meetings confirmation
+                bot.send_message(chat_id, text=consts.conf_reminder_text, reply_markup=consts.basic_markup)
+
             # Send notification that no souls are found
             elif not exist:
                 bot.send_message(chat_id, text=consts.no_souls_found_text)
