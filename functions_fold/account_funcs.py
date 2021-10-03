@@ -584,7 +584,7 @@ def change_dep_few_stations(message, station_name):
             view_acc_func(message)
 
         elif not exists:
-            error_funcs.no_station_found(message)
+            error_funcs.no_station_on_way_found(message)
 
     except:
         error_funcs.other_error(message)
@@ -663,7 +663,7 @@ def change_arr_few_stations(message, station_name):
             view_acc_func(message)
 
         elif not exists:
-            error_funcs.no_station_found(message)
+            error_funcs.no_station_on_way_found(message)
 
     except:
         error_funcs.other_error(message)

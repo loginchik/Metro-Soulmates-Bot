@@ -80,7 +80,7 @@ def write_conf(confirmation_class):
 # Gets soul's nick from message
 def get_soul_nick(message):
     # Save message text
-    got_soul_nick = str(message.text).lower()
+    got_soul_nick = message.text
 
     # Split potential nick into letters
     list_soul_nick = []
@@ -465,7 +465,7 @@ def approve_conf(message):
             bot.register_next_step_handler(approval, get_approval, confirmation_class)
 
         else:
-            bot.send_message(chat_id, text=consts.no_unapproved_text)
+            bot.send_message(chat_id, text=consts.no_unapproved_text, reply_markup=consts.basic_markup)
 
     except:
         error_funcs.other_error(message)
