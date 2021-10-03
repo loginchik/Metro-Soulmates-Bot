@@ -677,7 +677,7 @@ def ask_what_to_edit_step(message):
         chat_id = message.chat.id
 
         # Send message asking what to change
-        msg = bot.send_message(chat_id, text=consts.what_to_change_text)
+        msg = bot.send_message(chat_id, text=consts.what_to_change_text, reply_markup=consts.edit_account_markup)
 
         # Follow next step (work with a decision)
         bot.register_next_step_handler(msg, forward_to_func_step)

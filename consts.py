@@ -1,8 +1,7 @@
 import logging
-
 import telebot
-
 import classes
+from telebot import types
 
 # consts
 with open('token.txt', 'r') as tgtoken:
@@ -113,3 +112,30 @@ soul_is_not_reg_text = 'Похоже, что ваш соул не зарегис
 # ---- Stickers -----
 sad_sticker = 'CAACAgIAAxkBAAEC7aBhRl4U7rzGDaMoAWDhP1f3AutOOgACaBEAAkAwiUtLxBKN7HrbtiAE'
 error_sticker = 'CAACAgIAAxkBAAEC7YxhRlfXHvsef8cgeKq8wiEhRnGjKgACqg0AAuODiUjd0_CDy4ej6yAE'
+
+# ----- Keyboard Markups -----
+
+# Edit account buttons
+edit_account_markup = types.ReplyKeyboardMarkup()
+edit_account_markup.one_time_keyboard = True
+
+edit_name_btn = types.KeyboardButton(text='Имя')
+update_nickname_btn = types.KeyboardButton(text='Никнейм')
+edit_dep_btn = types.KeyboardButton(text='Станция прибытия')
+edit_arr_btn = types.KeyboardButton(text='Станция отправления')
+
+edit_account_markup.row(edit_name_btn, update_nickname_btn)
+edit_account_markup.row(edit_dep_btn, edit_arr_btn)
+
+# New user markup
+not_registered_markup = types.ReplyKeyboardMarkup()
+
+register_btn = types.KeyboardButton(text='Регистрация')
+help_btn = types.KeyboardButton(text='Помощь')
+faq_btn = types.KeyboardButton(text='FAQ')
+
+not_registered_markup.row(register_btn)
+not_registered_markup.row(help_btn, faq_btn)
+
+# Basic markup
+basic_markup = types.ReplyKeyboardMarkup()
