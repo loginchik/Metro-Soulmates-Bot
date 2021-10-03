@@ -62,7 +62,7 @@ def check_password(message):
     admin_pass = admin_pass_file.read()
 
     # Check if its correct
-    if str(message.text) == admin_pass:
+    if message.text == admin_pass:
         admin_stats(message)
     else:
         bot.send_message(message.chat.id, 'Wrong. Exit')
@@ -87,8 +87,8 @@ def admin_stats(message):
         # Close connection
         con.close()
 
-        # Return data
-        return [users_num, confirms_num]
+        # Send data
+        bot.send_message(message.chat.id, 'Users: {0}\nConfirms: {1}'.format(users_num, confirms_num))
 
     except:
         error_funcs.other_error(message)
