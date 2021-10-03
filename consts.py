@@ -136,8 +136,8 @@ edit_account_markup.one_time_keyboard = True
 
 edit_name_btn = types.KeyboardButton(text='Имя')
 update_nickname_btn = types.KeyboardButton(text='Никнейм')
-edit_dep_btn = types.KeyboardButton(text='Станция прибытия')
-edit_arr_btn = types.KeyboardButton(text='Станция отправления')
+edit_dep_btn = types.KeyboardButton(text='Станция отправления')
+edit_arr_btn = types.KeyboardButton(text='Станция прибытия')
 
 edit_account_markup.row(edit_name_btn, update_nickname_btn)
 edit_account_markup.row(edit_dep_btn, edit_arr_btn)
