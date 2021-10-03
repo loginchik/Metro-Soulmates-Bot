@@ -6,6 +6,7 @@ from functions_fold import about_funcs, account_funcs, help_funcs, soulmates_sea
     confirmation_funcs, error_funcs, faq_funcs
 
 bot = consts.bot
+user = consts.user
 
 # Create users db if not exists
 with sq.connect('db/users.db') as con:
@@ -36,25 +37,26 @@ with sq.connect('db/users.db') as con:
 
 # Func gets current user info from db
 def get_current_user(user_id):
-    # Create a class to store data
-    user = classes.User(user_id)
+    global user
 
     # Connect to db
     con = sq.connect('db/users.db')
     cur = con.cursor()
 
     # Count same user_id in db
-    cur.execute('SELECT count(user_id) FROM users WHERE user_id=?', (user_id,))
-    ids_num = cur.fetchone()[0]
+    cur.execute('SELECT user_id FROM users WHERE user_id=?', (user_id,))
+    pack = cur.fetchall()
 
     # Close connection
     con.close()
 
+    pack_len = len(pack)
+
     # Change reg_status
-    if ids_num == 0:
+    if pack_len == 0:
         user.reg_status = False
 
-    elif ids_num > 0:
+    elif pack_len > 0:
         user.reg_status = True
 
     # If registered, get info about the user
@@ -90,9 +92,8 @@ def listener(messages):
         chat_id = message.chat.id
         user_id = message.chat.id
 
-        user = get_current_user(user_id)
-
         if message.content_type == 'text':
+            current_user = get_current_user(user_id)
             new_msg = str(message.text).lower()
 
             # Registration is not required
@@ -113,53 +114,53 @@ def listener(messages):
 
             # Only without registration
             elif new_msg in ['/register', 'регистрация', 'зарегистрироваться']:
-                if not user.reg_status:
+                if not current_user.reg_status:
                     account_funcs.get_basic_step(message)
-                elif user.reg_status:
+                elif current_user.reg_status:
                     error_funcs.user_exists_error(message)
 
             # Only with registration
             elif new_msg in ['/viewaccount', 'посмотреть профиль']:
-                if user.reg_status:
+                if current_user.reg_status:
                     account_funcs.view_acc_func(message)
-                elif not user.reg_status:
+                elif not current_user.reg_status:
                     error_funcs.no_registration_error(message)
 
             elif new_msg in ['/editaccount', 'изменить аккаунт', 'редактировать профиль']:
-                if user.reg_status:
+                if current_user.reg_status:
                     account_funcs.ask_what_to_edit_step(message)
-                elif not user.reg_status:
+                elif not current_user.reg_status:
                     error_funcs.no_registration_error(message)
 
             elif new_msg in ['/deleteaccount', 'удалить профиль']:
-                if user.reg_status:
+                if current_user.reg_status:
                     account_funcs.delete_account(message)
-                elif not user.reg_status:
+                elif not current_user.reg_status:
                     error_funcs.no_registration_error(message)
 
             elif new_msg in ['/soulssearch', 'поиск попутчиков', 'искать попутчиков', 'найти попутчиков',
                              'найти соула', 'поиск соула', 'искать соула']:
-                if user.reg_status:
+                if current_user.reg_status:
                     soulmates_search_funcs.main_find_souls(message=message, user_class=user, user_id=user_id)
                 else:
                     error_funcs.no_registration_error(message)
 
             elif new_msg in ['/confirm', 'мы встретились']:
-                if user.reg_status:
+                if current_user.reg_status:
                     confirmation_funcs.start_conf_process(message)
-                elif not user.reg_status:
+                elif not current_user.reg_status:
                     error_funcs.no_registration_error(message)
 
             elif new_msg == '/untrusted':
-                if user.reg_status:
+                if current_user.reg_status:
                     confirmation_funcs.send_unapproved_num(message)
-                elif not user.reg_status:
+                elif not current_user.reg_status:
                     error_funcs.no_registration_error(message)
 
             elif new_msg in ['/trustme', 'подтвердить встречу']:
-                if user.reg_status:
+                if current_user.reg_status:
                     confirmation_funcs.approve_conf(message)
-                elif not user.reg_status:
+                elif not current_user.reg_status:
                     error_funcs.no_registration_error(message)
 
             # Command is not recognized
