@@ -161,9 +161,12 @@ def get_dep_step(message):
 
         if stats_num_cur == 0:
             # Means that user gave a wrong name or the station is not in db
-            error_funcs.no_station_found(message)
 
-        if stats_num_cur == 1:
+            # Ask again
+            dep_again = bot.send_message(chat_id, text=consts.no_station_error_text + consts.dep_ask_text)
+            bot.register_next_step_handler(dep_again, get_dep_step)
+
+        elif stats_num_cur == 1:
             # Means that this station is the only one
 
             # Get departure station's unique code
@@ -179,7 +182,7 @@ def get_dep_step(message):
             send = bot.send_message(message.chat.id, text=consts.arr_ask_text)
             bot.register_next_step_handler(send, get_arr)
 
-        if stats_num_cur > 1:
+        elif stats_num_cur > 1:
             # Means that there are few stations with same name
 
             # Send warning about the issue and ask for a way number
@@ -223,8 +226,12 @@ def few_ways_st_dep(message, dep_name):
             send = bot.send_message(chat_id, text=consts.arr_ask_text)
             bot.register_next_step_handler(send, get_arr)
 
-        if not exists:
-            error_funcs.no_station_on_way_found(message)
+        elif not exists:
+
+            # Ask again
+            way_again = bot.send_message(chat_id, text=consts.few_ways_no_station_text, reply_markup=consts.ways_markup)
+            bot.register_next_step_handler(way_again, few_ways_st_dep)
+
     except:
         error_funcs.other_error(message)
 
@@ -245,10 +252,11 @@ def get_arr(message):
         if stats_num_cur == 0:
             # Means that user gave a wrong name or stations isn't in db
 
-            # Send error warning
-            error_funcs.no_station_found(message)
+            # Ask again
+            arr_again = bot.send_message(chat_id, text=consts.no_station_error_text + consts.arr_ask_text)
+            bot.register_next_step_handler(arr_again, get_arr)
 
-        if stats_num_cur == 1:
+        elif stats_num_cur == 1:
             # Means that there is the only one station with this name
 
             # Get the unique code of the station
@@ -263,7 +271,7 @@ def get_arr(message):
             # Send account created confirmation message
             bot.send_message(chat_id=message.chat.id, text=consts.acc_create_conf_text)
 
-        if stats_num_cur > 1:
+        elif stats_num_cur > 1:
             # Means that there are few stations with this name
 
             # Send a warning about this issue
@@ -303,8 +311,12 @@ def few_ways_st_arr(message, arr_name):
             # Send account confirmation message
             bot.send_message(chat_id, text=consts.acc_create_conf_text)
 
-        if not exists:
-            error_funcs.no_station_on_way_found(message)
+        elif not exists:
+
+            # Ask again
+            way_again = bot.send_message(chat_id, text=consts.few_ways_no_station_text, reply_markup=consts.ways_markup)
+            bot.register_next_step_handler(way_again, few_ways_st_arr)
+
     except:
         error_funcs.other_error(message)
 
@@ -522,10 +534,10 @@ def change_dep(message):
 
         if stats_num == 0:
             # Means that the name is wrong or station is not in db
-            new_dep = bot.send_message(chat_id, text=consts.new_dep_text)
-            bot.register_next_step_handler(new_dep, change_dep)
 
-            # error_funcs.no_station_found(message)
+            # Ask again
+            new_dep_again = bot.send_message(chat_id, text=consts.no_station_error_text + consts.new_dep_text)
+            bot.register_next_step_handler(new_dep_again, change_dep)
 
         elif stats_num == 1:
             # Means that there is the only one station with this name
@@ -565,6 +577,7 @@ def change_dep_few_stations(message, station_name):
     try:
         # Save user's message data
         user_id = message.from_user.id
+        chat_id = message.chat.id
 
         # Get way number
         new_dep_way = identify_way(message)
@@ -587,7 +600,10 @@ def change_dep_few_stations(message, station_name):
             view_acc_func(message)
 
         elif not exists:
-            error_funcs.no_station_on_way_found(message)
+
+            # Ask again
+            way_again = bot.send_message(chat_id, text=consts.few_ways_no_station_text, reply_markup=consts.ways_markup)
+            bot.register_next_step_handler(way_again, few_ways_st_dep)
 
     except:
         error_funcs.other_error(message)
@@ -608,7 +624,10 @@ def change_arr(message):
 
         if stats_num == 0:
             # Means that the name is wrong of station is not in db
-            error_funcs.no_station_found(message)
+
+            # Ask again
+            new_arr_again = bot.send_message(chat_id, text=consts.no_station_error_text + consts.new_arr_text)
+            bot.register_next_step_handler(new_arr_again, change_arr)
 
         elif stats_num == 1:
             # Means that there is the only station with this name
@@ -643,6 +662,7 @@ def change_arr_few_stations(message, station_name):
     try:
         # Save user's message data
         user_id = message.from_user.id
+        chat_id = message.chat.id
 
         # Save new arrival station's info
         new_arr_way = identify_way(message)
@@ -666,7 +686,10 @@ def change_arr_few_stations(message, station_name):
             view_acc_func(message)
 
         elif not exists:
-            error_funcs.no_station_on_way_found(message)
+
+            # Ask again
+            way_again = bot.send_message(chat_id, text=consts.few_ways_no_station_text, reply_markup=consts.ways_markup)
+            bot.register_next_step_handler(way_again, few_ways_st_arr)
 
     except:
         error_funcs.other_error(message)
