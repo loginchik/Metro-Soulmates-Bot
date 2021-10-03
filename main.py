@@ -90,6 +90,8 @@ def listener(messages):
         chat_id = message.chat.id
         user_id = message.chat.id
 
+        user = get_current_user(user_id)
+
         if message.content_type == 'text':
             new_msg = str(message.text).lower()
 
@@ -111,7 +113,6 @@ def listener(messages):
 
             # Only without registration
             elif new_msg in ['/register', 'регистрация', 'зарегистрироваться']:
-                user = get_current_user(user_id)
                 if not user.reg_status:
                     account_funcs.get_basic_step(message)
                 elif user.reg_status:
@@ -119,21 +120,18 @@ def listener(messages):
 
             # Only with registration
             elif new_msg in ['/viewaccount', 'посмотреть профиль']:
-                user = get_current_user(user_id)
                 if user.reg_status:
                     account_funcs.view_acc_func(message)
                 elif not user.reg_status:
                     error_funcs.no_registration_error(message)
 
             elif new_msg in ['/editaccount', 'изменить аккаунт', 'редактировать профиль']:
-                user = get_current_user(user_id)
                 if user.reg_status:
                     account_funcs.ask_what_to_edit_step(message)
                 elif not user.reg_status:
                     error_funcs.no_registration_error(message)
 
             elif new_msg in ['/deleteaccount', 'удалить профиль']:
-                user = get_current_user(user_id)
                 if user.reg_status:
                     account_funcs.delete_account(message)
                 elif not user.reg_status:
@@ -141,28 +139,24 @@ def listener(messages):
 
             elif new_msg in ['/soulssearch', 'поиск попутчиков', 'искать попутчиков', 'найти попутчиков',
                              'найти соула', 'поиск соула', 'искать соула']:
-                user = get_current_user(user_id)
                 if user.reg_status:
                     soulmates_search_funcs.main_find_souls(message=message, user_class=user, user_id=user_id)
                 else:
                     error_funcs.no_registration_error(message)
 
             elif new_msg in ['/confirm', 'мы встретились']:
-                user = get_current_user(user_id)
                 if user.reg_status:
                     confirmation_funcs.start_conf_process(message)
                 elif not user.reg_status:
                     error_funcs.no_registration_error(message)
 
             elif new_msg == '/untrusted':
-                user = get_current_user(user_id)
                 if user.reg_status:
                     confirmation_funcs.send_unapproved_num(message)
                 elif not user.reg_status:
                     error_funcs.no_registration_error(message)
 
             elif new_msg in ['/trustme', 'подтвердить встречу']:
-                user = get_current_user(user_id)
                 if user.reg_status:
                     confirmation_funcs.approve_conf(message)
                 elif not user.reg_status:
