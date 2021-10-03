@@ -44,3 +44,12 @@ class Confirmation(object):
         self.soul_id = None
         self.file_name = None
         self.date = None
+
+
+class Way(object):
+    def __init__(self, ring_starts, ring_ends):
+        # Less than this number are out of ring
+        self.ring_starts_at = ring_starts
+
+        # More than this number are out of ring
+        self.ring_ends_at = ring_ends

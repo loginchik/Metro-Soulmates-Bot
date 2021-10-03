@@ -7,6 +7,88 @@ from functions_fold import error_funcs
 bot = consts.bot
 
 
+def define_way_class(way_number):
+    # Define ring starts and ends for each way
+
+    # Ring is the way_5
+    way_1 = classes.Way(ring_starts=6, ring_ends=13)
+    way_2 = classes.Way(ring_starts=9, ring_ends=14)
+    way_3 = classes.Way(ring_starts=3, ring_ends=15)
+    way_4 = classes.Way(ring_starts=10, ring_ends=13)
+    way_5 = classes.Way(ring_starts=1, ring_ends=12)
+    way_6 = classes.Way(ring_starts=8, ring_ends=13)
+    way_7 = classes.Way(ring_starts=10, ring_ends=14)
+
+    # We have some problems here
+    way_8 = classes.Way(ring_starts=1, ring_ends=20)
+
+    way_9 = classes.Way(ring_starts=9, ring_ends=14)
+    way_10 = classes.Way(ring_starts=9, ring_ends=11)
+
+    # Here we also have some problems
+    way_11 = classes.Way(ring_starts=1, ring_ends=11)
+
+    way_12 = classes.Way(ring_starts=0, ring_ends=0)
+    way_13 = classes.Way(ring_starts=1, ring_ends=5)
+    way_14 = classes.Way(ring_starts=0, ring_ends=0)
+    way_15 = classes.Way(ring_starts=0, ring_ends=0)
+
+    # Ring is the first cross with metro station
+    way_21 = classes.Way(ring_starts=7, ring_ends=15)
+    way_22 = classes.Way(ring_starts=7, ring_ends=27)
+
+    if way_number == 1:
+        way_class = way_1
+    elif way_number == 2:
+        way_class = way_2
+    elif way_number == 3:
+        way_class = way_3
+    elif way_number == 4:
+        way_class = way_4
+    elif way_number == 5:
+        way_class = way_5
+    elif way_number == 6:
+        way_class = way_6
+    elif way_number == 7:
+        way_class = way_7
+    elif way_number == 8:
+        way_class = way_8
+    elif way_number == 9:
+        way_class = way_9
+    elif way_number == 10:
+        way_class = way_10
+    elif way_number == 11:
+        way_class = way_11
+    elif way_number == 12:
+        way_class = way_12
+    elif way_number == 13:
+        way_class = way_13
+    elif way_number == 14:
+        way_class = way_14
+    elif way_number == 15:
+        way_class = way_15
+    elif way_number == 21:
+        way_class = way_21
+    elif way_number == 22:
+        way_class = way_22
+
+    return way_class
+
+
+def is_station_in_ring(station_number, way_class):
+    # Define ring range
+    ring_range = list(range(way_class.ring_starts_at, way_class.ring_ends_at + 1))
+
+    # Check if the station is inside the ring or not
+    if station_number in ring_range:
+        station_in_ring = True
+    elif station_number not in ring_range:
+        station_in_ring = False
+
+    # Return station ring status
+    return station_in_ring
+
+
 # Func gets station's way and number on the way from db using unique code
 # Return tuple
 def get_way_number_from_code(code):
@@ -45,24 +127,48 @@ def get_way_name(way_number):
 # Func finds departure stations which are suitable for soulmates search process
 # Return package with matching departure stations' codes
 def find_dep_stats(dep_station_code):
-    # Get way and number from unique code
-    pack = get_way_number_from_code(dep_station_code)
-    way = pack[0]
-    number = pack[1]
+    try:
+        # Get way and number from unique code
+        pack = get_way_number_from_code(dep_station_code)
+        way = pack[0]
+        number = pack[1]
 
-    # Connect to db
-    con = sq.connect('db/metro.db')
-    cur = con.cursor()
+        way_class = define_way_class(way)
+        station_in_ring = is_station_in_ring(station_number=number, way_class=way_class)
 
-    # Find and save matching stations
-    cur.execute('''SELECT code FROM stations_coo WHERE way=? AND (number BETWEEN ?-2 AND ?+2)''', (way, number, number))
-    stat_pack = cur.fetchall()
+        # Connect to db
+        con = sq.connect('db/metro.db')
+        cur = con.cursor()
 
-    # Close connection
-    con.close()
+        # Find and save matching stations
+        # Select four nearest stations
+        if station_in_ring:
+            cur.execute('''SELECT code FROM stations_coo WHERE way=? AND (number BETWEEN ?-2 AND ?+2)''',
+                        (way, number, number))
+            stat_pack = cur.fetchall()
 
-    # Return matching stations package [()]
-    return stat_pack
+        # Select all stations outside the ring + nearest four
+        elif not station_in_ring:
+            if number < way_class.ring_starts_at:
+                cur.execute('SELECT code FROM stations_coo WHERE way=? AND (number<? OR number BETWEEN ?-2 AND ?+2)',
+                            (way, way_class.ring_starts_at, number, number))
+                stat_pack = cur.fetchall()
+            elif number > way_class.ring_ends_at:
+                cur.execute('SELECT code FROM stations_coo WHERE way=? AND (number>? OR number BETWEEN ?-2 AND ?+2)',
+                            (way, way_class.ring_ends_at, number, number))
+                stat_pack = cur.fetchall()
+
+        # Close connection
+        con.close()
+
+        # Return matching stations package [()]
+        return stat_pack
+
+    except:
+        stat_pack = 'error'
+
+    finally:
+        return stat_pack
 
 
 # Func finds all users with matching departure stations
@@ -270,41 +376,46 @@ def main_find_souls(message, user_class, user_id):
         # Find matching stations for soulmates search process
         dep_stat_pack = find_dep_stats(dep_station_code=user_class.dep_code)
 
-        # Find users matching by departure stations
-        souls_matching_departure = find_dep_souls(stations_pack=dep_stat_pack,
-                                                  user_id=user_id)
-
-        # Find users matching by arrival station
-        souls_matching_arrival = find_arr_souls(arr_station_code=user_class.arr_code,
-                                                user_id=user_id)
-
-        # Merge two lists to find truly matching souls
-        all_souls_matching = find_matching_souls(souls_matching_departure=souls_matching_departure,
-                                                 souls_matching_arrival=souls_matching_arrival)
-
-        # Check if soulmates exist
-        exist = check_souls_exist(all_souls_matching)
-
-        # Continue searching process
-        if exist:
-
-            # Find 5 random soulmates
-            soulmates = find_current_souls(all_souls_matching)
-
-            # Send info about each
-            for soul in soulmates:
-                soul_info = get_soul_info(soul_id=soul)
-                send_soul_info(soul_info, chat_id)
-
-        # Send notification that no souls are found
-        elif not exist:
-            bot.send_message(chat_id, text=consts.no_souls_found_text)
-            bot.send_sticker(chat_id, data=consts.sad_sticker)
-
         # Work with errors
-        elif exist == 'error':
+        if dep_stat_pack == 'error':
             error_funcs.other_error(message)
 
+        # If no errors, continue process
+        else:
+            # Find users matching by departure stations
+            souls_matching_departure = find_dep_souls(stations_pack=dep_stat_pack,
+                                                      user_id=user_id)
+
+            # Find users matching by arrival station
+            souls_matching_arrival = find_arr_souls(arr_station_code=user_class.arr_code,
+                                                    user_id=user_id)
+
+            # Merge two lists to find truly matching souls
+            all_souls_matching = find_matching_souls(souls_matching_departure=souls_matching_departure,
+                                                     souls_matching_arrival=souls_matching_arrival)
+
+            # Check if soulmates exist
+            exist = check_souls_exist(all_souls_matching)
+
+            # Continue searching process
+            if exist:
+
+                # Find 5 random soulmates
+                soulmates = find_current_souls(all_souls_matching)
+
+                # Send info about each
+                for soul in soulmates:
+                    soul_info = get_soul_info(soul_id=soul)
+                    send_soul_info(soul_info, chat_id)
+
+            # Send notification that no souls are found
+            elif not exist:
+                bot.send_message(chat_id, text=consts.no_souls_found_text)
+                bot.send_sticker(chat_id, data=consts.sad_sticker)
+
+            # Work with errors
+            elif exist == 'error':
+                error_funcs.other_error(message)
 
     except:
         error_funcs.other_error(message)
