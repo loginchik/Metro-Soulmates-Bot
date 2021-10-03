@@ -522,7 +522,10 @@ def change_dep(message):
 
         if stats_num == 0:
             # Means that the name is wrong or station is not in db
-            error_funcs.no_station_found(message)
+            new_dep = bot.send_message(chat_id, text=consts.new_dep_text)
+            bot.register_next_step_handler(new_dep, change_dep)
+
+            # error_funcs.no_station_found(message)
 
         elif stats_num == 1:
             # Means that there is the only one station with this name
